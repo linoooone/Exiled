@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * *
- *	Ping Pong              *
+ *	Ping Pong          *
  *  Created by:            *
  * The Ludicolo Bros       *
  * (HoeenHero and Insist)  *
@@ -10,8 +10,6 @@
 class PingPong extends Console.Console {
 	constructor(user, room, muted, rounds, kickTime) {
 		super(user, room, "background:url('https://media.giphy.com/media/l41lO5QYsXKGi911C/giphy.gif'); color: black; font-weight: bold;", null, null, muted, null);
-		// OK so what I have setup, the game class extends the existing console class from console.js
-		// We run a super() to get thesetup from console.js and then we add whatever setup we need for this game
 		this.user = user;
 		this.game = 'Ping Pong';
 		this.hasBall = 'PLAYER';
@@ -48,8 +46,7 @@ class PingPong extends Console.Console {
 			//send updates
 			this.update(null, '<center><button class="button" name="send" value="/pingpong hit">HIT THE BALL</button></center>');
 			this.runAutoDQ();
-		}
-		else {
+		} else {
 			this.endRound(true, false);
 		}
 	}
@@ -60,8 +57,7 @@ class PingPong extends Console.Console {
 		if (win) {
 			this.score[0]++;
 			if (this.score[0] >= this.winScore) return this.endGame(true);
-		}
-		else {
+		} else {
 			this.score[1]++;
 			if (this.score[1] >= this.winScore) return this.endGame(false);
 		}
@@ -77,6 +73,7 @@ class PingPong extends Console.Console {
 	}
 	runAutoDQ() {
 		this.timer = setTimeout(function () {
+			if (!this || !this.endRound) return;
 			return this.endRound(false, true);
 		}, this.kickTime);
 	}
@@ -84,10 +81,7 @@ class PingPong extends Console.Console {
 	endGame(win) {
 		if (win) {
 			this.update(null, '<center style="background-color: green">Congratulations to ' + this.user.name + ' for winning the game of Ping Pong!<br/><button name="send" class="button" value="/pingpong start">Play again?</button> | <button name="send" class="button" value="/pingpong end">No, I wont play your stupid game again.</button></center>');
-			Exiled.addExp(this.user.name, this.room, 8);
-			this.user.sendTo(Rooms(this.room), "You won " + 8 + " exp for winning Ping Pong");
-		}
-		else {
+		} else {
 			this.update(null, '<center style="background-color: green">The COM won the game of ping pong...<br/><button name="send" class="button" value="/pingpong start">Play again?</button> | <button name="send" class="button" value="/pingpong end">No, I wont play your stupid game again.</button></center>');
 		}
 	}
@@ -124,8 +118,7 @@ exports.commands = {
 				// send updates
 				user.console.update(null, "<center>The COM is hitting the ball...</center>", null);
 				user.console.comAction();
-			}
-			else {
+			} else {
 				user.console.endRound(false, false);
 			}
 		},

@@ -1,7 +1,7 @@
 /*
- * Poll chat plugin
- * By bumbadadabum and Zarel.
- */
+* Poll chat plugin
+* By bumbadadabum and Zarel.
+*/
 
 'use strict';
 
@@ -52,9 +52,7 @@ class Poll {
 		let ip = user.latestIp;
 		let userid = user.userid;
 
-		if (userid in this.voters || ip in this.voterIps) {
-			user.sendTo(this.room, "You're already looking at the results.");
-		} else {
+		if (!(userid in this.voters) || !(ip in this.voterIps)) {
 			this.voters[userid] = 0;
 			this.voterIps[ip] = 0;
 		}
@@ -99,7 +97,7 @@ class Poll {
 			c++;
 		}
 		if (option === 0 && !ended) output += '<div><small>(You can\'t vote after viewing results)</small></div>';
-		output += '</table>';
+		output += '</div>';
 
 		return output;
 	}
@@ -114,7 +112,7 @@ class Poll {
 		return Chat.escapeHTML(option.name);
 	}
 
-	update(force) {
+	update() {
 		let results = [];
 
 		for (let i = 0; i <= this.options.size; i++) {
@@ -128,8 +126,6 @@ class Poll {
 				user.sendTo(this.room, '|uhtmlchange|poll' + this.room.pollNumber + '|' + results[this.voters[user.userid]]);
 			} else if (user.latestIp in this.voterIps) {
 				user.sendTo(this.room, '|uhtmlchange|poll' + this.room.pollNumber + '|' + results[this.voterIps[user.latestIp]]);
-			} else if (force) {
-				user.sendTo(this.room, '|uhtmlchange|poll' + this.room.pollNumber + '|' + this.generateVotes());
 			}
 		}
 	}
@@ -191,7 +187,7 @@ class Poll {
 		let results = this.generateResults(true);
 
 		this.room.send('|uhtmlchange|poll' + this.room.pollNumber + '|<div class="infobox">(The poll has ended &ndash; scroll down to see the results)</div>');
-		this.room.add('|html|' + results).update();
+		this.room.add('|html|' + results);
 	}
 }
 
@@ -228,21 +224,12 @@ exports.commands = {
 			if (supportHTML) params = params.map(parameter => this.canHTML(parameter));
 			if (params.some(parameter => !parameter)) return;
 
-			let options = [];
-
-			for (let i = 1; i < params.length; i++) {
-				options.push(params[i]);
-			}
-
+			const options = params.splice(1);
 			if (options.length > 100) {
 				return this.errorReply("Too many options for poll (maximum is 100).");
 			}
 
-			room.poll = new Poll(room, {
-				source: params[0],
-				supportHTML: supportHTML,
-				username: user.name,
-			}, options);
+			room.poll = new Poll(room, {source: params[0], supportHTML: supportHTML}, options);
 			room.poll.display();
 
 			this.logEntry("" + user.name + " used " + message);
@@ -355,7 +342,7 @@ exports.commands = {
 
 			if (target) {
 				if (!this.can('minigame', null, room)) return false;
-				if (target === 'clear' || target === 'off') {
+				if (target === 'clear') {
 					if (!room.poll.timeout) return this.errorReply("There is no timer to clear.");
 					clearTimeout(room.poll.timeout);
 					room.poll.timeout = null;
@@ -446,7 +433,7 @@ exports.commands = {
 	exiledpoll: function (target, room, user) {
 		if (room.battle) return false;
 		if (!this.can('broadcast', null, room)) return false;
-		this.parse('/poll new Tier for the next tournament?, Exiled SSB, Ash\'s Pokemon, OP Metagame, Clash of the Regions, NFE, SMASHING METAGAME, Metronome Battles, Holiday Metagame, Exiled Perfected Pokemon, CAP SSB, Pokemon Mystery Dungeon, Supercell Games, Digimon Showdown, Fakemons Randoms, Fakemons, DSSB');
+		this.parse('/poll new Tier for the next tournament?, Exiled SSB, Ash\'s Pokemon, OP Metagame, Clash of the Regions, SMASHING METAGAME, Metronome Battles, Holiday Metagame, CAP SSB, Pokemon Mystery Dungeon, Supercell Games, Digimon Showdown, Fakemons Randoms, Fakemons');
 	},
 	pr: 'pollremind',
 	pollremind: function (target, room, user) {
@@ -460,6 +447,30 @@ exports.commands = {
 			this.parse('/poll display');
 		}
 	},
+	tpoll: 'tierpoll',
+	tierpoll: function (target, room, user, connection, cmd, message) {
+		if (!this.can('minigame', null, room)) return false;
+		if (room.poll) return this.errorReply("There is already a poll in progress in this room.");
+		let options = [];
+		for (let key in Dex.data.Formats) {
+			if (!Dex.data.Formats[key].mod) continue;
+			if (!Dex.data.Formats[key].searchShow) continue;
+			if (toId(target) !== 'all') {
+				let commonMods = ['gen7', 'essb', 'pmd', 'cssb', 'metronome', 'ashspokemon', 'clashoftheregions', 'advancedwars', 'digimon', 'holiday', 'smashingmetagame', 'ssbffa', 'opmetagame', 'fakemons', 'mixandmega', 'slowtown', 'stadium', 'theorymon', 'supercell'];
+				if (commonMods.indexOf(Dex.data.Formats[key].mod) === -1) continue;
+			}
+			options.push(Dex.data.Formats[key].name);
+		}
+		room.poll = new Poll(room, {
+			source: 'What should the next tournament tier be?',
+			supportHTML: false,
+			username: user.name,
+		}, options);
+		room.poll.display();
+		this.logEntry("" + user.name + " used " + message);
+		return this.privateModCommand("(A tier poll was started by " + user.name + ".)");
+	},
+	tierpollhelp: ["/tierpoll - (all) Creates a poll with all the common formats as options. All all to use all formats Requires: % @ * # & ~"],
 };
 
 process.nextTick(() => {

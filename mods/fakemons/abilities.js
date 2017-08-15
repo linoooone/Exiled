@@ -33,7 +33,6 @@ exports.BattleAbilities = {
 				return this.chainModify(1.2);
 			}
 		},
-		onBasePowerPriority: 7,
 		onFoeBasePower: function (basePower, attacker, defender, move) {
 			if (this.effectData.target !== defender) return;
 			if (move.type === 'Electric') {
@@ -63,6 +62,18 @@ exports.BattleAbilities = {
 		onHit: function (target, source, move) {
 			if (target.hp && move.category !== 'Status' && !move.damage && !move.damageCallback && move.typeMod > 0 && target.useItem()) {
 				this.boost({atk: 1, def: 1, spa: 1, spd: 1, spe: 1});
+			}
+		},
+	},
+	"jewelcrack": {
+		id: "jewelcrack",
+		name: "Jewel Crack",
+		num: 9005,
+		onModifyAccuracyPriority: 10,
+		onModifyAccuracy: function (accuracy, target, source, move) {
+			if (move.category === 'Physical' && !target.hasType('Rock', 'Steel')) {
+				this.debug('Jewel Crack makes this move 3x more accurate');
+				return this.chainModify(3);
 			}
 		},
 	},

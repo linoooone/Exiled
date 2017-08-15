@@ -171,6 +171,7 @@ exports.BattleStatuses = {
 			if (this.random(3) > 0) {
 				return;
 			}
+			this.activeTarget = pokemon;
 			this.damage(this.getDamage(pokemon, pokemon, 40), pokemon, pokemon, {
 				id: 'confused',
 				effectType: 'Move',
@@ -490,6 +491,42 @@ exports.BattleStatuses = {
 		onResidualOrder: 1,
 		onResidual: function () {
 			this.add('-weather', 'PrimordialSea', '[upkeep]');
+			this.eachEvent('Weather');
+		},
+		onEnd: function () {
+			this.add('-weather', 'none');
+		},
+	},
+	steelbarrier: {
+		effectType: 'Weather',
+		duration: 5,
+		durationCallback: function (source, effect) {
+			if (source && source.hasItem('ironball')) {
+				return 8;
+			}
+			return 5;
+		},
+		onWeatherModifyDamage: function (damage, attacker, defender, move) {
+			if (move.type === 'Steel') {
+				this.debug('Steel Barrier boost');
+				return this.chainModify(1.5);
+			}
+			if (move.type === 'Fairy') {
+				this.debug('Steel Barrier supresses Fairy');
+				return this.chainModify(0.5);
+			}
+		},
+		onStart: function (battle, source, effect) {
+			if (effect && effect.effectType === 'Ability') {
+				if (this.gen <= 5) this.effectData.duration = 0;
+				this.add('-weather', 'SteelBarrier', '[from] ability: ' + effect, '[of] ' + source);
+			} else {
+				this.add('-weather', 'SteelBarrier');
+			}
+		},
+		onResidualOrder: 1,
+		onResidual: function () {
+			this.add('-weather', 'SteelBarrier', '[upkeep]');
 			this.eachEvent('Weather');
 		},
 		onEnd: function () {

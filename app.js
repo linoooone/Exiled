@@ -20,7 +20,7 @@
  *   rooms.js. There's also a global room which every user is in, and
  *   handles miscellaneous things like welcoming the user.
  *
- * Tools - from tools.js
+ * Dex - from sim/dex.js
  *
  *   Handles getting data about Pokemon, items, etc.
  *
@@ -42,26 +42,20 @@
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const FS = require('./fs');
 
-/*********************************************************
- * Make sure we have everything set up correctly
- *********************************************************/
-
-// Make sure our dependencies are available, and install them if they
-// aren't
-
+// Check for version and dependencies
+try {
+	// I've gotten enough reports by people who don't use the launch
+	// script that this is worth repeating here
+	eval('{ let a = async () => {}; }');
+} catch (e) {
+	throw new Error("We require Node.js version 8 or later; you're using " + process.version);
+}
 try {
 	require.resolve('sockjs');
 } catch (e) {
-	if (require.main !== module) throw new Error("Dependencies unmet");
-
-	let command = 'npm install --production';
-	console.log('Installing dependencies: `' + command + '`...');
-	require('child_process').spawnSync('sh', ['-c', command], {
-		stdio: 'inherit',
-	});
+	throw new Error("Dependencies are unmet; run node pokemon-showdown before launching Pokemon Showdown again.");
 }
 
 /*********************************************************
@@ -72,27 +66,21 @@ try {
 	require.resolve('./config/config');
 } catch (err) {
 	if (err.code !== 'MODULE_NOT_FOUND') throw err; // should never happen
-
-	// Copy it over synchronously from config-example.js since it's needed before we can start the server
-	console.log("config.js doesn't exist - creating one with default settings...");
-	fs.writeFileSync(path.resolve(__dirname, 'config/config.js'),
-		fs.readFileSync(path.resolve(__dirname, 'config/config-example.js'))
-	);
-} finally {
-	global.Config = require('./config/config');
+	throw new Error('config.js does not exist; run node pokemon-showdown to set up the default config file before launching Pokemon Showdown again.');
 }
+
+global.Config = require('./config/config');
 
 if (Config.watchconfig) {
 	let configPath = require.resolve('./config/config');
-	fs.watchFile(configPath, (curr, prev) => {
-		if (curr.mtime <= prev.mtime) return;
+	FS(configPath).onModify(() => {
 		try {
 			delete require.cache[configPath];
 			global.Config = require('./config/config');
 			if (global.Users) Users.cacheGroupData();
 			console.log('Reloaded config/config.js');
 		} catch (e) {
-			console.log('Error reloading config/config.js: ' + e.stack);
+			console.error(`Error reloading config/config.js: ${e.stack}`);
 		}
 	});
 }
@@ -105,8 +93,8 @@ global.Exiled = {};
 
 global.Monitor = require('./monitor');
 
-global.Tools = require('./tools');
-global.toId = Tools.getId;
+global.Dex = require('./sim/dex');
+global.toId = Dex.getId;
 
 global.LoginServer = require('./loginserver');
 
@@ -127,6 +115,8 @@ global.Tells = require('./tells');
 global.Ontime = {};
 
 global.SG = {};
+
+global.sqlite3 = require('sqlite3');
 
 global.forever = {};
 
@@ -196,21 +186,17 @@ exports.listen = function (port, bindAddress, workerCount) {
 };
 
 if (require.main === module) {
-	// if running with node app.js, set up the server directly
-	// (otherwise, wait for app.listen())
+	// Launch the server directly when app.js is the main module. Otherwise,
+	// in the case of app.js being imported as a module (e.g. unit tests),
+	// postpone launching until app.listen() is called.
 	let port;
-	if (process.argv[2]) {
-		port = parseInt(process.argv[2]); // eslint-disable-line radix
-	}
+	if (process.argv[2]) port = parseInt(process.argv[2]);
 	Sockets.listen(port);
 }
 
 /*********************************************************
  * Set up our last global
  *********************************************************/
-
-// Generate and cache the format list.
-Tools.includeFormats();
 
 global.TeamValidator = require('./team-validator');
 TeamValidator.PM.spawn();

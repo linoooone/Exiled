@@ -5,6 +5,7 @@
 	"version": "0.11.0",
 	"dependencies": {
 		"MD5": "^1.3.0",
+<<<<<<< HEAD
 		"autolinker": "^1.1.0",
 		"dem-feels": "^1.8.1",
 		"forever": "^0.15.2",
@@ -16,19 +17,35 @@
 		"origindb": "^2.6.1",
 		"request": "^2.72.0",
 		"sockjs": "0.3.18",
+=======
+		"autolinker": "^1.4.3",
+		"dem-feels": "^1.8.1",
+		"forever": "^0.15.2",
+		"geoip-ultralight": "^0.1.5",
+		"githubhook": "^1.7.1",
+		"json-stringify-safe": "^5.0.1",
+		"moment": "^2.18.1",
+		"nani": "^1.2.0",
+		"nano": "^6.3.0",
+		"node-serialize": "0.0.4",
+		"origindb": "^2.6.1",
+		"request": "^2.81.0",
+		"sockjs": "0.3.18",
+		"sqlite3": "^3.1.8",
+>>>>>>> e2e0ba130236db1e027712bd5e5c8709affb3150
 		"uuid": "^2.0.2"
 	},
 	"optionalDependencies": {
-		"cloud-env": "0.1.1",
-		"http-proxy": "0.10.0",
-		"nodemailer": "1.4.0",
-		"node-static": "0.7.7"
+		"cloud-env": "0.2.2",
+		"http-proxy": "1.16.2",
+		"nodemailer": "4.0.1",
+		"node-static": "0.7.9"
 	},
 	"nonDefaultDependencies": {
 		"ofe": "0.1.2"
 	},
 	"engines": {
-		"node": ">=6.0.0"
+		"node": ">=7.7.0"
 	},
 	"main": "app.js",
 	"scripts": {
@@ -61,8 +78,10 @@
 	"private": true,
 	"license": "MIT",
 	"devDependencies": {
-		"eslint": "^3.2.2",
+		"eslint": "^4.0.0",
 		"mocha": "^3.0.0",
-		"mock-fs-require-fix": "~1.0.0"
+		"@types/node": "^8.0.1",
+		"@types/nodemailer": "^1.3.33",
+		"typescript": "^2.5.0-dev.20170622"
 	}
 }

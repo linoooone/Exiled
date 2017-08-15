@@ -5,20 +5,6 @@
  ********************/
 const color = require('../config/color');
 const Pokedex = require('../data/pokedex.js').BattlePokedex;
-let messages = [
-	"has vanished into nothingness!",
-	"used Explosion!",
-	"fell into the void.",
-	"went into a cave without a repel!",
-	"has left the building.",
-	"was forced to give StevoDuhHero's mom an oil massage!",
-	"was hit by Magikarp's Revenge!",
-	"ate a bomb!",
-	"is blasting off again!",
-	"(Quit: oh god how did this get here i am not good with computer)",
-	"was unfortunate and didn't get a cool message.",
-	"{{user}}'s mama accidently kicked {{user}} from the server!",
-];
 
 function font(color, text) {
 	return '<font color="' + color + '">' + text + '</font>';
@@ -43,6 +29,7 @@ exports.commands = {
 	chatcolorhelp: ["/chatcolor OR /chatcolour [colour], [message] - Outputs a message in a custom colour. Requires VIP."],
 
 	/* eslint-enable */
+	'!m8b': true,
 	helixfossil: 'm8b',
 	helix: 'm8b',
 	magic8ball: 'm8b',
@@ -58,26 +45,6 @@ exports.commands = {
 		let results = ['Here\'s some bright powder!', 'I sense a shiny in the near future, just keep trying!', 'If you\'re hungry, just eat some of your breedjects :D', 'BRIGHT POWDER!', 'Good luck!', '#ItsBreedingTime', '/pick is rigged!'];
 		return this.sendReplyBox(results[Math.floor(7 * Math.random())]);
 	},
-	d: 'poof',
-	cpoof: 'poof',
-	poof: function (target, room, user) {
-		if (Config.poofOff) return this.sendReply("Poof is currently disabled.");
-		if (target && !this.can('broadcast')) return false;
-		if (room.id !== 'lobby') return false;
-		let message = target || messages[Math.floor(Math.random() * messages.length)];
-		if (message.indexOf('{{user}}') < 0) message = '{{user}} ' + message;
-		message = message.replace(/{{user}}/g, user.name);
-		if (!this.canTalk(message)) return false;
-
-		let colour = '#' + [1, 1, 1].map(function () {
-			let part = Math.floor(Math.random() * 0xaa);
-			return (part < 0x10 ? '0' : '') + part.toString(16);
-		}).join('');
-
-		room.addRaw("<strong><font color=\"" + colour + "\">~~ " + Chat.escapeHTML(message) + " ~~</font></strong>");
-		user.disconnectAll();
-	},
-	poofhelp: ["/poof - Disconnects the user and leaves a message in the room."],
 
 	randp: function (target, room, user) {
 		if (!this.runBroadcast()) return;
@@ -138,7 +105,7 @@ exports.commands = {
 				"<center><b><u>List of commands (2/3):</u></b></center><br />" +
 				"<b>/hangman</b> help - Help on hangman specific commands.<br />" +
 				"<b>/poof</b> - Disconnects the user and leaves a message in the room.<br />" +
-				"<b>/profile</b> - Shows information regarding user\'s name, group, money, and when they were last seen.<br />" +
+				"<b>/profile</b> - Shows information regarding user's name, group, money, and when they were last seen.<br />" +
 				"<b>/regdate</b> <i>user</i> - Gets registration date of the user.<br />" +
 				"<br />Use /cmds <i>number (1-3)</i> to see more commands."
 			);
@@ -150,7 +117,7 @@ exports.commands = {
 				"<b>/richestusers</b> - Show the richest users.<br />" +
 				"<b>/seen</b> <i>username</i> - Shows when the user last connected on the server.<br />" +
 				"<b>/sell</b> <i>id</i> - Sells a card in the marketplace. Hover over your card to get the id.<br />" +
-				"<b>/shop</b> - Displays the server\'s main shop.<br />" +
+				"<b>/shop</b> - Displays the server's main shop.<br />" +
 				"<b>/stafflist</b> - Shows the staff.<br />" +
 				"<b>/tell</b> <i>username</i>, <i>message</i> - Send a message to an offline user that will be received when they log in.<br />" +
 				"<b>/transfer</b> <i>user</i>, <i>amount</i> - Transfer a certain amount of money to a user.<br />" +
@@ -168,24 +135,6 @@ exports.commands = {
 		if (!target) return false;
 		if (!this.can('declare', null, room)) return false;
 		this.parse('/roomintro ' + room.introMessage.split('<u>Announcements</u>: ')[0] + '<u>Announcements</u>: ' + target + ('</marquee></div>'));
-	},
-
-	fcadd: 'friendcodeadd',
-	friendcodeadd: function (target, room, user) {
-		if (!target) return this.errorReply("Invalid command. Valid commands are `/friendcodeadd code` and `/friendcoderemove`.");
-		let fc = Chat.escapeHTML(target.trim());
-		let reg = /^\d{4}-\d{4}-\d{4}$/;
-		if (!reg.test(fc)) return this.errorReply("Invalid friend code, example: 3110-7818-5106");
-		Db('FriencodeDB').set(toId(user), fc);
-		this.sendReply("Friendcode set.");
-	},
-
-	fcrmv: 'friendcoderemove',
-	fcdelete: 'friendcoderemove',
-	friendcoderemove: function (target, room, user) {
-		if (!Db('FriencodeDB').has(toId(user))) return this.errorReply("You do not have a friendcode.");
-		Db('FriencodeDB').delete(toId(user));
-		this.sendReply("Friendcode removed.");
 	},
 
 	dimg: 'displayimage',

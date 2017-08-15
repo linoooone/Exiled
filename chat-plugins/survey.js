@@ -100,7 +100,7 @@ class Survey {
 		let icon = '<span style="border:1px solid #' + (ended ? '777;color:#555' : '6A6;color:#484') + ';border-radius:4px;padding:0 3px"><i class="fa fa-bar-chart"></i> ' + (ended ? "Survey ended" : "Survey") + '</span>';
 		let output = '<div class="infobox"><p style="margin: 2px 0 5px 0">' + icon + ' <strong style="font-size:11pt">' + (this.allowHTML ? this.question : Chat.escapeHTML(this.question)) + '</strong></p>';
 		for (let i in this.repliers) {
-			if (this.repliers[i]) output += '<div>' + SG.nameColor(i, true) + ': <i>"' + this.repliers[i] + '"</i><div><br/>';
+			if (this.repliers[i]) output += '<div>' + Exiled.nameColor(i, true) + ': <i>"' + this.repliers[i] + '"</i><div><br/>';
 		}
 		if (!ended) output += '<div style="margin-top: 7px; padding-left: 12px"><button value="/survey hideresults" class="button" name="send" title="Hide results - hide the results."><small>(Hide Results)</small></div>';
 		output += '</div>';
@@ -202,17 +202,17 @@ exports.commands = {
 			if (!room.survey) return this.errorReply("There is no survey running in the room.");
 			return room.survey.blankanswer(user);
 		},
-		resultshelp: ["/survey results - View the results of the survey. You cant go back and answer if you havent already."],
+		resultshelp: ["/survey results - View the results of the survey. You can't go back and answer if you havent already."],
 
 		hideresults: function (target, room, user, connection, cmd, message) {
 			if (!room.survey) return this.errorReply("There is no survey running in the room.");
 			if (room.survey.hasReplied(user)) {
 				return room.survey.updateTo(user, false);
 			} else {
-				return this.errorReply('You can hide the results if you cant view them.');
+				return this.errorReply('You can hide the results if you can\'t view them.');
 			}
 		},
-		hideresultshelp: ["/survey hideresults - Hide the results of the survey. You cant do this if you havent answered yet."],
+		hideresultshelp: ["/survey hideresults - Hide the results of the survey. You can't do this if you havent answered yet."],
 
 		display: function (target, room, user, connection, cmd, message) {
 			if (!room.survey) return this.errorReply("There is no survey running in the room.");
@@ -253,7 +253,7 @@ exports.commands = {
 		end: function (target, room, user, connection, cmd, message) {
 			if (!this.can('minigame', null, room)) return false;
 			if (!this.canTalk()) return this.errorReply("You cannot do this while unable to talk.");
-			if (!room.survey) return this.errorReply("There is no poll running in this room.");
+			if (!room.survey) return this.errorReply("There is no survey running in this room.");
 			if (room.survey.timeout) clearTimeout(room.survey.timeout);
 
 			room.survey.end();
@@ -303,7 +303,7 @@ exports.commands = {
 		"Accepts the following commands:",
 		"/survey create [question] - Create a survey. Requires % @ # & ~",
 		"/survey answer [answer] - Answer a survey.",
-		"/survey results - View the results of the survey. You cant go back and answer if you havent already.",
+		"/survey results - View the results of the survey. You can't go back and answer if you havent already.",
 		"/survey display - Display the survey.",
 		"/survey remove [user] - Removes a users reply and prevents them from sending in a new one for this survey. Requires: % @ # & ~",
 		"/survey end - Ends a survey and displays the results. Requires: % @ # & ~",

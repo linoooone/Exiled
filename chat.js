@@ -16,15 +16,17 @@
  */
 
 /*
+
 To reload chat commands:
+
 /hotpatch chat
+
 */
 
 'use strict';
 
-let Chat = module.exports;
-
 const MAX_MESSAGE_LENGTH = 300;
+
 const BROADCAST_COOLDOWN = 20 * 1000;
 const MESSAGE_COOLDOWN = 5 * 60 * 1000;
 
@@ -33,9 +35,86 @@ const MAX_PARSE_RECURSION = 10;
 const VALID_COMMAND_TOKENS = '/!';
 const BROADCAST_TOKEN = '!';
 
-const fs = require('fs');
-const path = require('path');
-const parseEmoticons = require('./chat-plugins/emoticons').parseEmoticons;
+const FS = require('./fs');
+
+let Chat = module.exports;
+
+// Regex copied from the client
+const domainRegex = '[a-z0-9\\-]+(?:[.][a-z0-9\\-]+)*';
+const parenthesisRegex = '[(](?:[^\\s()<>&]|&amp;)*[)]';
+const linkRegex = new RegExp(
+	'(?:' +
+		'(?:' +
+			// When using www. or http://, allow any-length TLD (like .museum)
+			'(?:https?://|\\bwww[.])' + domainRegex +
+			'|\\b' + domainRegex + '[.]' +
+				// Allow a common TLD, or any 2-3 letter TLD followed by : or /
+				'(?:com?|org|net|edu|info|us|jp|[a-z]{2,3}(?=[:/]))' +
+		')' +
+		'(?:[:][0-9]+)?' +
+		'\\b' +
+		'(?:' +
+			'/' +
+			'(?:' +
+				'(?:' +
+					'[^\\s()&<>]|&amp;|&quot;' +
+					'|' + parenthesisRegex +
+				')*' +
+				// URLs usually don't end with punctuation, so don't allow
+				// punctuation symbols that probably aren't related to URL.
+				'(?:' +
+					'[^\\s`()\\[\\]{}\'".,!?;:&<>*_`^~\\\\]' +
+					'|' + parenthesisRegex +
+				')' +
+			')?' +
+		')?' +
+		'|[a-z0-9.]+\\b@' + domainRegex + '[.][a-z]{2,3}' +
+	')' +
+	'(?!.*&gt;)',
+	'ig'
+);
+const hyperlinkRegex = new RegExp(`(.+)&lt;(.+)&gt;`, 'i');
+// Matches U+FE0F and all Emoji_Presentation characters. More details on
+// http://www.unicode.org/Public/emoji/5.0/emoji-data.txt
+const emojiRegex = /[\u231A\u231B\u23E9-\u23EC\u23F0\u23F3\u25FD\u25FE\u2614\u2615\u2648-\u2653\u267F\u2693\u26A1\u26AA\u26AB\u26BD\u26BE\u26C4\u26C5\u26CE\u26D4\u26EA\u26F2\u26F3\u26F5\u26FA\u26FD\u2705\u270A\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u2795-\u2797\u27B0\u27BF\u2B1B\u2B1C\u2B50\u2B55\uFE0F\u{1F004}\u{1F0CF}\u{1F18E}\u{1F191}-\u{1F19A}\u{1F1E6}-\u{1F1FF}\u{1F201}\u{1F21A}\u{1F22F}\u{1F232}-\u{1F236}\u{1F238}-\u{1F23A}\u{1F250}\u{1F251}\u{1F300}-\u{1F320}\u{1F32D}-\u{1F335}\u{1F337}-\u{1F37C}\u{1F37E}-\u{1F393}\u{1F3A0}-\u{1F3CA}\u{1F3CF}-\u{1F3D3}\u{1F3E0}-\u{1F3F0}\u{1F3F4}\u{1F3F8}-\u{1F43E}\u{1F440}\u{1F442}-\u{1F4FC}\u{1F4FF}-\u{1F53D}\u{1F54B}-\u{1F54E}\u{1F550}-\u{1F567}\u{1F57A}\u{1F595}\u{1F596}\u{1F5A4}\u{1F5FB}-\u{1F64F}\u{1F680}-\u{1F6C5}\u{1F6CC}\u{1F6D0}-\u{1F6D2}\u{1F6EB}\u{1F6EC}\u{1F6F4}-\u{1F6F8}\u{1F910}-\u{1F93A}\u{1F93C}-\u{1F93E}\u{1F940}-\u{1F945}\u{1F947}-\u{1F94C}\u{1F950}-\u{1F96B}\u{1F980}-\u{1F997}\u{1F9C0}\u{1F9D0}-\u{1F9E6}]/u;
+
+const formattingResolvers = [
+	{token: "**", resolver: str => `<b>${str}</b>`},
+	{token: "__", resolver: str => `<i>${str}</i>`},
+	{token: "``", resolver: str => `<code>${str}</code>`},
+	{token: "~~", resolver: str => `<s>${str}</s>`},
+	{token: "^^", resolver: str => `<sup>${str}</sup>`},
+	{token: "\\", resolver: str => `<sub>${str}</sub>`},
+	{token: "&lt;&lt;", endToken: "&gt;&gt;", resolver: str => str.replace(/[a-z0-9-]/g, '').length ? false : `&laquo;<a href="${str}" target="_blank">${str}</a>&raquo;`},
+	{token: "[[", endToken: "]]", resolver: str => {
+		let hl = hyperlinkRegex.exec(str);
+		if (hl) return `<a href="${hl[2].trim().replace(/^([a-z]*[^a-z:])/g, 'http://$1')}">${hl[1].trim()}</a>`;
+
+		let query = str;
+		let querystr = str;
+		let split = str.split(':');
+		if (split.length > 1) {
+			let opt = toId(split[0]);
+			query = split.slice(1).join(':').trim();
+
+			switch (opt) {
+			case 'wiki':
+			case 'wikipedia':
+				return `<a href="http://en.wikipedia.org/w/index.php?title=Special:Search&search=${encodeURIComponent(query)}" target="_blank">${querystr}</a>`;
+			case 'yt':
+			case 'youtube':
+				query += " site:youtube.com";
+				querystr = `yt: ${query}`;
+				break;
+			case 'pokemon':
+			case 'item':
+				return `<psicon title="${query}" ${opt}="${query}" />`;
+			}
+		}
+
+		return `<a href="http://www.google.com/search?ie=UTF-8&btnI&q=${encodeURIComponent(query)}" target="_blank">${querystr}</a>`;
+	}},
+];
 
 class PatternTester {
 	// This class sounds like a RegExp
@@ -59,7 +138,7 @@ class PatternTester {
 	register(...elems) {
 		for (let elem of elems) {
 			this.elements.push(elem);
-			if (/^[^ \^\$\?\|\(\)\[\]]+ $/.test(elem)) {
+			if (/^[^ ^$?|()[\]]+ $/.test(elem)) {
 				this.fastElements.add(this.fastNormalize(elem));
 			}
 		}
@@ -160,46 +239,68 @@ class CommandContext {
 
 			message = this.canTalk(message);
 		}
-		if (this.room && nightclub[this.room.id] && message) {
-			this.room.add('|raw|<div style="background: #000;"><font size="3"><small>' + nightclubify((this.room.auth ? (this.room.auth[this.user.userid] || this.user.group) : this.user.group)) + "</small><b>" + nightclubify(Chat.escapeHTML(this.user.name) + ":") + "</b> " + nightclubify((message)) + '</font></div>').update();
-			return null;
-		}
 
 		// Output the message
 
 		if (message && message !== true && typeof message.then !== 'function') {
 			if (this.pmTarget) {
-				const parsedMsg = parseEmoticons(message, this.room, this.user, true);
-				if (parsedMsg) message = '/html ' + parsedMsg;
+				let noEmotes = message;
+				let emoticons = Exiled.parseEmoticons(message);
+				if (emoticons) {
+					noEmotes = message;
+					message = "/html " + emoticons;
+				}
 				let buf = `|pm|${this.user.getIdentity()}|${this.pmTarget.getIdentity()}|${message}`;
 				this.user.send(buf);
-				if (this.pmTarget !== this.user) this.pmTarget.send(buf);
-
+				if (Users.ShadowBan.checkBanned(this.user)) {
+					Users.ShadowBan.addMessage(this.user, "Private to " + this.pmTarget.getIdentity(), noEmotes);
+				} else {
+					if (this.pmTarget !== this.user) this.pmTarget.send(buf);
+				}
 				this.pmTarget.lastPM = this.user.userid;
 				this.user.lastPM = this.pmTarget.userid;
 			} else {
-				if (Users.ShadowBan.checkBanned(this.user)) {
-					if (parseEmoticons(message, this.room, this.user)) return;
-					Users.ShadowBan.addMessage(this.user, `To ${this.room.id}`, message);
-					this.user.sendTo(this.room.id, `|c|${this.user.getIdentity(this.room.id)}|${message}`);
+				let emoticons = Exiled.parseEmoticons(message);
+				if (emoticons && !this.room.disableEmoticons) {
+					if (Users.ShadowBan.checkBanned(this.user)) {
+						Users.ShadowBan.addMessage(this.user, "To " + this.room.id, message);
+						if (!Exiled.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|/html ' + emoticons);
+						if (Exiled.ignoreEmotes[this.user.userid]) this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+						this.room.update();
+						return false;
+					}
+					for (let u in this.room.users) {
+						let curUser = Users(u);
+						if (!curUser || !curUser.connected) continue;
+						if (Exiled.ignoreEmotes[curUser.userid]) {
+							curUser.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+							continue;
+						}
+						curUser.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|/html ' + emoticons);
+					}
+					this.room.log.push((this.room.type === 'chat' ? (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+					this.room.lastUpdate = this.room.log.length;
+					this.room.messageCount++;
+					//Exiled.addExp(this.user, this.room, 1);
 				} else {
 					if (Users.ShadowBan.checkBanned(this.user)) {
 						Users.ShadowBan.addMessage(this.user, "To " + this.room.id, message);
 						this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
 					} else {
-						if (parseEmoticons(message, this.room, this.user)) return;
-						this.room.add(`|c|${this.user.getIdentity(this.room.id)}|${message}`).update();
-						Exiled.addExp(this.user, this.room, 1);
+						this.room.add((this.room.type === 'chat' ? (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+						this.room.messageCount++;
 					}
+					//Exiled.addExp(this.user, this.room, 1);
 				}
+				//this.room.add(`|c|${this.user.getIdentity(this.room.id)}|${message}`);
 			}
 		}
-
 
 		this.update();
 
 		return message;
 	}
+
 	splitCommand(message = this.message, recursing) {
 		this.cmd = '';
 		this.cmdToken = '';
@@ -222,8 +323,7 @@ class CommandContext {
 		if (cmdToken === message.charAt(1)) return;
 		if (cmdToken === BROADCAST_TOKEN && /[^A-Za-z0-9]/.test(message.charAt(1))) return;
 
-		let cmd = '',
-			target = '';
+		let cmd = '', target = '';
 
 		let spaceIndex = message.indexOf(' ');
 		if (spaceIndex > 0) {
@@ -316,7 +416,7 @@ class CommandContext {
 				message: this.message,
 			});
 			Rooms.global.reportCrash(err);
-			this.sendReply(`|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don't worry, we\'re working on fixing it.</div>`);
+			this.sendReply(`|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don't worry, we're working on fixing it.</div>`);
 		}
 		if (result === undefined) result = false;
 
@@ -325,7 +425,8 @@ class CommandContext {
 
 	checkFormat(room, user, message) {
 		if (!room) return true;
-		if (!room.filterStretching && !room.filterCaps) return true;
+		if (!room.filterStretching && !room.filterCaps && !room.filterEmojis) return true;
+		if (user.can('bypassall')) return true;
 
 		if (room.filterStretching && user.name.match(/(.+?)\1{5,}/i)) {
 			return this.errorReply(`Your username contains too much stretching, which this room doesn't allow.`);
@@ -333,14 +434,20 @@ class CommandContext {
 		if (room.filterCaps && user.name.match(/[A-Z\s]{6,}/)) {
 			return this.errorReply(`Your username contains too many capital letters, which this room doesn't allow.`);
 		}
+		if (room.filterEmojis && user.name.match(emojiRegex)) {
+			return this.errorReply(`Your username contains emojis, which this room doesn't allow.`);
+		}
 		// Removes extra spaces and null characters
 		message = message.trim().replace(/[ \u0000\u200B-\u200F]+/g, ' ');
 
-		if (room.filterStretching && message.match(/(.+?)\1{7,}/i) && !user.can('mute', null, room)) {
+		if (room.filterStretching && message.match(/(.+?)\1{7,}/i)) {
 			return this.errorReply(`Your message contains too much stretching, which this room doesn't allow.`);
 		}
-		if (room.filterCaps && message.match(/[A-Z\s]{18,}/) && !user.can('mute', null, room)) {
+		if (room.filterCaps && message.match(/[A-Z\s]{18,}/)) {
 			return this.errorReply(`Your message contains too many capital letters, which this room doesn't allow.`);
+		}
+		if (room.filterEmojis && message.match(emojiRegex)) {
+			return this.errorReply(`Your message contains emojis, which this room doesn't allow.`);
 		}
 
 		return true;
@@ -491,11 +598,18 @@ class CommandContext {
 				return false;
 			}
 
+			if (Users.ShadowBan.checkBanned(this.user)) {
+				Users.ShadowBan.addMessage(this.user, "To " + this.room.id, message);
+				this.user.sendTo(this.room, (this.room.type === 'chat' ? '|c:|' + (~~(Date.now() / 1000)) + '|' : '|c|') + this.user.getIdentity(this.room.id) + '|' + message);
+				this.parse('/' + this.message.substr(1));
+				return false;
+			}
+
 			// broadcast cooldown
 			let broadcastMessage = message.toLowerCase().replace(/[^a-z0-9\s!,]/g, '');
 
 			if (this.room && this.room.lastBroadcast === this.broadcastMessage &&
-				this.room.lastBroadcastTime >= Date.now() - BROADCAST_COOLDOWN) {
+					this.room.lastBroadcastTime >= Date.now() - BROADCAST_COOLDOWN) {
 				this.errorReply("You can't broadcast this because it was just broadcasted.");
 				return false;
 			}
@@ -581,9 +695,9 @@ class CommandContext {
 				if (targetUser.locked && !user.can('lock')) {
 					return this.errorReply(`The user "${targetUser.name}" is locked and cannot be PMed.`);
 				}
-				if (Config.pmmodchat && !user.authAtLeast(Config.pmmodchat)) {
+				if (Config.pmmodchat && !user.authAtLeast(Config.pmmodchat) && !targetUser.canPromote(user.group, Config.pmmodchat)) {
 					let groupName = Config.groups[Config.pmmodchat] && Config.groups[Config.pmmodchat].name || Config.pmmodchat;
-					return this.errorReply(`Because moderated chat is set, you must be of rank ${groupName} or higher to PM users.`);
+					return this.errorReply(`On this server, you must be of rank ${groupName} or higher to PM users.`);
 				}
 				if (targetUser.ignorePMs && targetUser.ignorePMs !== user.group && !user.can('lock')) {
 					if (!targetUser.can('lock')) {
@@ -626,6 +740,10 @@ class CommandContext {
 				return false;
 			}
 
+			if (!this.checkBanwords(room, user.name) && !user.can('bypassall')) {
+				this.errorReply(`Your username contains a phrase banned by this room.`);
+				return false;
+			}
 			if (!this.checkBanwords(room, message) && !user.can('mute', null, room)) {
 				this.errorReply("Your message contained banned words.");
 				return false;
@@ -633,8 +751,8 @@ class CommandContext {
 
 			if (room) {
 				let normalized = message.trim();
-				if (room.id === 'lobby' && (normalized === user.lastMessage) &&
-					((Date.now() - user.lastMessageTime) < MESSAGE_COOLDOWN)) {
+				if ((room.id === 'lobby' || room.id === 'help') && (normalized === user.lastMessage) &&
+						((Date.now() - user.lastMessageTime) < MESSAGE_COOLDOWN)) {
 					this.errorReply("You can't send the same message again so soon.");
 					return false;
 				}
@@ -655,7 +773,7 @@ class CommandContext {
 		if (uri.startsWith('//')) return uri;
 		if (uri.startsWith('data:')) return uri;
 		if (!uri.startsWith('http://')) {
-			if (/^[a-z]+\:\/\//.test(uri) || isRelative) {
+			if (/^[a-z]+:\/\//.test(uri) || isRelative) {
 				return this.errorReply("URIs must begin with 'https://' or 'http://' or 'data:'");
 			}
 		} else {
@@ -680,6 +798,7 @@ class CommandContext {
 			'deviantart.net': 1,
 			'd.pr': 1,
 			'pokefans.net': 1,
+			'pokepast.es': 1,
 		};
 		if (domain in approvedDomains) {
 			return '//' + uri;
@@ -708,7 +827,7 @@ class CommandContext {
 				this.errorReply('All images must have a width and height attribute');
 				return false;
 			}
-			let srcMatch = /src\s*\=\s*"?([^ "]+)(\s*")?/i.exec(match[0]);
+			let srcMatch = /src\s*=\s*"?([^ "]+)(\s*")?/i.exec(match[0]);
 			if (srcMatch) {
 				let uri = this.canEmbedURI(srcMatch[1], true);
 				if (!uri) return false;
@@ -717,7 +836,7 @@ class CommandContext {
 				images.lastIndex = match.index + 11;
 			}
 		}
-		if ((this.room.isPersonal || this.room.isPrivate === true) && !this.user.can('lock') && html.replace(/\s*style\s*=\s*\"?[^\"]*\"\s*>/g, '>').match(/<button[^>]/)) {
+		if ((this.room.isPersonal || this.room.isPrivate === true) && !this.user.can('lock') && html.replace(/\s*style\s*=\s*"?[^"]*"\s*>/g, '>').match(/<button[^>]/)) {
 			this.errorReply('You do not have permission to use scripted buttons in HTML.');
 			this.errorReply('If you just want to link to a room, you can do this: <a href="/roomid"><button>button contents</button></a>');
 			return false;
@@ -728,7 +847,7 @@ class CommandContext {
 		}
 
 		// check for mismatched tags
-		let tags = html.toLowerCase().match(/<\/?(div|a|button|b|strong|em|i|u|center|font|marquee|blink|details|summary|code)\b/g);
+		let tags = html.toLowerCase().match(/<\/?(div|a|button|b|strong|em|i|u|center|font|marquee|blink|details|summary|code|table|td|tr)\b/g);
 		if (tags) {
 			let stack = [];
 			for (let i = 0; i < tags.length; i++) {
@@ -793,7 +912,7 @@ Chat.CommandContext = CommandContext;
  * Usage:
  *   Chat.parse(message, room, user, connection)
  *
- * Parses the message. If it's a command, the commnad is executed, if
+ * Parses the message. If it's a command, the command is executed, if
  * not, it's displayed directly in the room.
  *
  * Examples:
@@ -816,12 +935,7 @@ Chat.CommandContext = CommandContext;
  */
 Chat.parse = function (message, room, user, connection) {
 	Chat.loadCommands();
-	let context = new CommandContext({
-		message,
-		room,
-		user,
-		connection,
-	});
+	let context = new CommandContext({message, room, user, connection});
 
 	return context.parse();
 };
@@ -836,8 +950,8 @@ Chat.uncacheTree = function (root) {
 			if (require.cache[uncache[i]]) {
 				newuncache.push.apply(newuncache,
 					require.cache[uncache[i]].children
-					.filter(cachedModule => !cachedModule.id.endsWith('.node'))
-					.map(cachedModule => cachedModule.id)
+						.filter(cachedModule => !cachedModule.id.endsWith('.node'))
+						.map(cachedModule => cachedModule.id)
 				);
 				delete require.cache[uncache[i]];
 			}
@@ -849,9 +963,8 @@ Chat.uncacheTree = function (root) {
 Chat.loadCommands = function () {
 	if (Chat.commands) return;
 
-	fs.readFile(path.resolve(__dirname, 'package.json'), (err, data) => {
-		if (err) return;
-		Chat.package = JSON.parse(data);
+	FS('package.json').readTextIfExists().then(data => {
+		if (data) Chat.package = JSON.parse(data);
 	});
 
 	let baseCommands = Chat.baseCommands = require('./chat-commands').commands;
@@ -864,17 +977,17 @@ Chat.loadCommands = function () {
 
 	Object.assign(commands, require('./console.js').commands);
 
-	for (let file of fs.readdirSync(path.resolve(__dirname, 'chat-plugins'))) {
+	for (let file of FS('chat-plugins/').readdirSync()) {
 		if (file.substr(-3) !== '.js' || file === 'info.js') continue;
 		Object.assign(commands, require('./chat-plugins/' + file).commands);
 	}
-	for (let file of fs.readdirSync(path.resolve(__dirname, 'game-cards'))) {
+	for (let file of FS('game-cards').readdirSync()) {
 		if (file.substr(-3) !== '.js') continue;
 		Object.assign(commands, require('./game-cards/' + file).commands);
 	}
 	// Load games for Console
 	Exiled.gameList = {};
-	for (let file of fs.readdirSync(path.resolve(__dirname, 'game-cards'))) {
+	for (let file of FS('game-cards').readdirSync()) {
 		if (file.substr(-3) !== '.js') continue;
 		let obj = require('./game-cards/' + file).box;
 		if (obj && obj.name) obj.id = toId(obj.name);
@@ -891,6 +1004,17 @@ Chat.loadCommands = function () {
 Chat.escapeHTML = function (str) {
 	if (!str) return '';
 	return ('' + str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
+};
+
+/**
+ * Strips HTML from a string.
+ *
+ * @param {string} html
+ * @return {string}
+ */
+Chat.stripHTML = function (html) {
+	if (!html) return '';
+	return html.replace(/<[^>]*>/g, '');
 };
 
 /**
@@ -980,4 +1104,173 @@ Chat.toDurationString = function (number, options) {
 		}
 	}
 	return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
+};
+
+/**
+ * Takes a string and converts it to HTML by replacing standard chat formatting with the appropriate HTML tags.
+ *
+ * @param  {string} str
+ * @return {string}
+ */
+Chat.parseText = function (str) {
+	str = Chat.escapeHTML(str).replace(/&#x2f;/g, '/').replace(linkRegex, uri => `<a href=${uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1')}>${uri}</a>`);
+
+	let output = [''];
+	let stack = [];
+
+	let parse = true;
+
+	let i = 0;
+	mainLoop: while (i < str.length) {
+		let token = str[i];
+
+		// Hardcoded parsing
+		if (parse && token === '`' && str.substr(i, 2) === '``') {
+			stack.push('``');
+			output.push('');
+			parse = false;
+			i += 2;
+			continue;
+		}
+
+		for (let f = 0; f < formattingResolvers.length; f++) {
+			let start = formattingResolvers[f].token;
+			let end = formattingResolvers[f].endToken || start;
+
+			if (stack.length && end.startsWith(token) && str.substr(i, end.length) === end && output[stack.length].replace(token, '').length) {
+				for (let j = stack.length - 1; j >= 0; j--) {
+					if (stack[j] === start) {
+						parse = true;
+
+						while (stack.length > j + 1) {
+							output[stack.length - 1] += stack.pop() + output.pop();
+						}
+
+						let str = output.pop();
+						let outstr = formattingResolvers[f].resolver(str.trim());
+						if (!outstr) outstr = `${start}${str}${end}`;
+						output[stack.length - 1] += outstr;
+						i += end.length;
+						stack.pop();
+						continue mainLoop;
+					}
+				}
+			}
+
+			if (parse && start.startsWith(token) && str.substr(i, start.length) === start) {
+				stack.push(start);
+				output.push('');
+				i += start.length;
+				continue mainLoop;
+			}
+		}
+
+		output[stack.length] += token;
+		i++;
+	}
+
+	while (stack.length) {
+		output[stack.length - 1] += stack.pop() + output.pop();
+	}
+
+	let result = output[0];
+
+	return result;
+};
+
+/**
+ * Takes an array and turns it into a sentence string by adding commas and the word 'and' at the end
+ *
+ * @param  {array} array
+ * @return {string}
+ */
+Chat.toListString = function (array) {
+	if (!array.length) return '';
+	if (array.length === 1) return array[0];
+	return `${array.slice(0, -1).join(", ")} and ${array.slice(-1)}`;
+};
+
+Chat.getDataPokemonHTML = function (template, gen = 7) {
+	if (typeof template === 'string') template = Object.assign({}, Dex.getTemplate(template));
+	let buf = '<li class="result">';
+	buf += '<span class="col numcol">' + (template.tier) + '</span> ';
+	buf += `<span class="col iconcol"><psicon pokemon="${template.id}"/></span> `;
+	buf += '<span class="col pokemonnamecol" style="white-space:nowrap"><a href="https://pokemonshowdown.com/dex/pokemon/' + template.id + '" target="_blank">' + template.species + '</a></span> ';
+	buf += '<span class="col typecol">';
+	if (template.types) {
+		for (let i = 0; i < template.types.length; i++) {
+			buf += `<img src="https://play.pokemonshowdown.com/sprites/types/${template.types[i]}.png" alt="${template.types[i]}" height="14" width="32">`;
+		}
+	}
+	buf += '</span> ';
+	if (gen >= 3) {
+		buf += '<span style="float:left;min-height:26px">';
+		if (template.abilities['1']) {
+			buf += '<span class="col twoabilitycol">' + template.abilities['0'] + '<br />' + template.abilities['1'] + '</span>';
+		} else {
+			buf += '<span class="col abilitycol">' + template.abilities['0'] + '</span>';
+		}
+		if (template.abilities['S']) {
+			buf += '<span class="col twoabilitycol' + (template.unreleasedHidden ? ' unreleasedhacol' : '') + '"><em>' + template.abilities['H'] + '<br />' + template.abilities['S'] + '</em></span>';
+		} else if (template.abilities['H']) {
+			buf += '<span class="col abilitycol' + (template.unreleasedHidden ? ' unreleasedhacol' : '') + '"><em>' + template.abilities['H'] + '</em></span>';
+		} else {
+			buf += '<span class="col abilitycol"></span>';
+		}
+		buf += '</span>';
+	}
+	let bst = 0;
+	for (let i in template.baseStats) {
+		bst += template.baseStats[i];
+	}
+	buf += '<span style="float:left;min-height:26px">';
+	buf += '<span class="col statcol"><em>HP</em><br />' + template.baseStats.hp + '</span> ';
+	buf += '<span class="col statcol"><em>Atk</em><br />' + template.baseStats.atk + '</span> ';
+	buf += '<span class="col statcol"><em>Def</em><br />' + template.baseStats.def + '</span> ';
+	if (gen <= 1) {
+		bst -= template.baseStats.spd;
+		buf += '<span class="col statcol"><em>Spc</em><br />' + template.baseStats.spa + '</span> ';
+	} else {
+		buf += '<span class="col statcol"><em>SpA</em><br />' + template.baseStats.spa + '</span> ';
+		buf += '<span class="col statcol"><em>SpD</em><br />' + template.baseStats.spd + '</span> ';
+	}
+	buf += '<span class="col statcol"><em>Spe</em><br />' + template.baseStats.spe + '</span> ';
+	buf += '<span class="col bstcol"><em>BST<br />' + bst + '</em></span> ';
+	buf += '</span>';
+	buf += '</li>';
+	return `<div class="message"><ul class="utilichart">${buf}<li style="clear:both"></li></ul></div>`;
+};
+
+Chat.getDataMoveHTML = function (move) {
+	if (typeof move === 'string') move = Object.assign({}, Dex.getMove(move));
+	let buf = `<ul class="utilichart"><li class="result">`;
+	buf += `<a data-entry="move|${move.name}"><span class="col movenamecol">${move.name}</span> `;
+	buf += `<span class="col typecol"><img src="//play.pokemonshowdown.com/sprites/types/${move.type}.png" alt="${move.type}" width="32" height="14">`;
+	buf += `<img src="//play.pokemonshowdown.com/sprites/categories/${move.category}.png" alt="${move.category}" width="32" height="14"></span> `;
+	if (move.basePower) buf += `<span class="col labelcol"><em>Power</em><br>${typeof move.basePower === 'number' ? move.basePower : '—'}</span> `;
+	buf += `<span class="col widelabelcol"><em>Accuracy</em><br>${typeof move.accuracy === 'number' ? (move.accuracy + '%') : '—'}</span> `;
+	const basePP = move.pp || 1;
+	const pp = Math.floor(move.noPPBoosts ? basePP : basePP * 8 / 5);
+	buf += `<span class="col pplabelcol"><em>PP</em><br>${pp}</span> `;
+	buf += `<span class="col movedesccol">${move.shortDesc || move.desc}</span> `;
+	buf += `</a></li><li style="clear:both"></li></ul>`;
+	return buf;
+};
+
+Chat.getDataAbilityHTML = function (ability) {
+	if (typeof ability === 'string') ability = Object.assign({}, Dex.getAbility(ability));
+	let buf = `<ul class="utilichart"><li class="result">`;
+	buf += `<a data-entry="ability|${ability.name}"><span class="col namecol">${ability.name}</span> `;
+	buf += `<span class="col abilitydesccol">${ability.shortDesc || ability.desc}</span> `;
+	buf += `</a></li><li style="clear:both"></li></ul>`;
+	return buf;
+};
+
+Chat.getDataItemHTML = function (item) {
+	if (typeof item === 'string') item = Object.assign({}, Dex.getItem(item));
+	let buf = `<ul class="utilichart"><li class="result">`;
+	buf += `<a data-entry="item|${item.name}"><span class="col itemiconcol"><psicon item="${item.id}"></span> <span class="col namecol">${item.name}</span> `;
+	buf += `<span class="col itemdesccol">${item.shortDesc || item.desc}</span> `;
+	buf += `</a></li><li style="clear:both"></li></ul>`;
+	return buf;
 };

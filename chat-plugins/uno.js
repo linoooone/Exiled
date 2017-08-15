@@ -4,20 +4,19 @@
  *
  * This plugin allows rooms to run games of scripted UNO
  *
+ * Credits: sparkychild
+ *
+ * Pokémon Plays UNO! Coded by Lord Haji and HoeenHero
+ * UNO Card Images(Card Art) by Ashley The Pikachu
+ * Most sprites for Card Art ripped by Kyleboy(https://www.spriters-resource.com/game_boy_gbc/pokemontradingcardgame2/),
+ * PokéDoll Sprite by Nemu(https://www.spriters-resource.com/game_boy_gbc/pokemontradingcardgame/sheet/8885/)
+ *
  * @license MIT license
  */
 
 'use strict';
 
-const maxTime = 60; // seconds
-
-const rgbGradients = {
-	'Green': "rgba(0, 122, 0, 1), rgba(0, 185, 0, 0.9)",
-	'Yellow': "rgba(255, 225, 0, 1), rgba(255, 255, 85, 0.9)",
-	'Blue': "rgba(40, 40, 255, 1), rgba(125, 125, 255, 0.9)",
-	'Red': "rgba(255, 0, 0, 1), rgba(255, 125, 125, 0.9)",
-	'Black': "rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.55)",
-};
+const maxTime = 120; // seconds
 
 const textColors = {
 	'Green': "rgb(0, 128, 0)",
@@ -27,20 +26,90 @@ const textColors = {
 	'Black': 'inherit',
 };
 
-const textShadow = 'text-shadow: 1px 0px black, -1px 0px black, 0px -1px black, 0px 1px black, 2px -2px black;';
+const cardImages = {
+	'Red': {
+		'0': ['https://i.imgur.com/EDkhoc3.png', 'https://i.imgur.com/KDAvqho.png'],
+		'1': ['http://i.imgur.com/2CmkOfZ.png', 'http://i.imgur.com/LG5ZEBh.png'],
+		'2': ['http://i.imgur.com/GnAbg2O.png', 'http://i.imgur.com/fz6dsPC.png'],
+		'3': ['http://i.imgur.com/KG2DlU0.png', 'http://i.imgur.com/7WWO0O1.png'],
+		'4': ['http://i.imgur.com/bL15w1H.png', 'http://i.imgur.com/SciPCET.png'],
+		'5': ['http://i.imgur.com/65gLmtS.png', 'http://i.imgur.com/F9uYr0l.png'],
+		'6': ['http://i.imgur.com/zO1QKIx.png', 'http://i.imgur.com/o6YgVNk.png'],
+		'7': ['http://i.imgur.com/TRbnmlC.png', 'http://i.imgur.com/Zv2bImk.png'],
+		'8': ['http://i.imgur.com/NgAlOvb.png', 'http://i.imgur.com/Zo7OM6q.png'],
+		'9': ['http://i.imgur.com/ed4GgFY.png', 'http://i.imgur.com/nQdDcPC.png'],
+		'Reverse': ['http://i.imgur.com/1II7MXH.png', 'http://i.imgur.com/PGSUrZr.png'],
+		'Skip': ['http://i.imgur.com/ud1XP2T.png', 'http://i.imgur.com/gg5BUWh.png'],
+		'+2': ['http://i.imgur.com/Ie83rhz.png', 'http://i.imgur.com/T4uwyQC.png'],
+	},
+	'Blue': {
+		'0': ['https://i.imgur.com/USxkz00.png', 'https://i.imgur.com/uBpitT3.png'],
+		'1': ['http://i.imgur.com/UPQtfFS.png', 'http://i.imgur.com/yhoJa5A.png'],
+		'2': ['http://i.imgur.com/oda2Jgc.png', 'http://i.imgur.com/y8HkEWj.png'],
+		'3': ['http://i.imgur.com/GV1KoS8.png', 'http://i.imgur.com/Y9dw9rH.png'],
+		'4': ['http://i.imgur.com/YbrUZZl.png', 'hhttp://i.imgur.com/2ZOG5cE.png'],
+		'5': ['http://i.imgur.com/0LNEV9u.png', 'http://i.imgur.com/ODF2g9a.png'],
+		'6': ['http://i.imgur.com/sesxOUz.png', 'http://i.imgur.com/Zo6aRE3.png'],
+		'7': ['http://i.imgur.com/DCXYkHE.png', 'http://i.imgur.com/vOKI7YE.png'],
+		'8': ['http://i.imgur.com/sr3ycsf.png', 'http://i.imgur.com/DGDSpX2.png'],
+		'9': ['http://i.imgur.com/ku26T44.png', 'http://i.imgur.com/NoGcuFG.png'],
+		'Reverse': ['http://i.imgur.com/73IKBT0.png', 'http://i.imgur.com/1aqFEmr.png'],
+		'Skip': ['http://i.imgur.com/ooI5g8V.png', 'http://i.imgur.com/ClaaNj3.png'],
+		'+2': ['http://i.imgur.com/Kc2aYFm.png', 'http://i.imgur.com/09BhP1E.png'],
+	},
+	'Green': {
+		'0': ['https://i.imgur.com/B4RtNx3.png', 'https://i.imgur.com/CaFXPI0.png'],
+		'1': ['http://i.imgur.com/oRjVKXU.png', 'http://i.imgur.com/srixETl.png'],
+		'2': ['http://i.imgur.com/GoTH1bl.png', 'http://i.imgur.com/pO8DtWo.png'],
+		'3': ['http://i.imgur.com/O91W7VJ.png', 'http://i.imgur.com/LI2GTY6.png'],
+		'4': ['http://i.imgur.com/nxnPhh9.png', 'http://i.imgur.com/uRBViWu.png'],
+		'5': ['http://i.imgur.com/BtXeP5G.png', 'http://i.imgur.com/BgsnkQx.png'],
+		'6': ['http://i.imgur.com/woHf1Ci.png', 'http://i.imgur.com/VHgXzWw.png'],
+		'7': ['http://i.imgur.com/RJNDaN0.png', 'http://i.imgur.com/r8Qza9I.png'],
+		'8': ['http://i.imgur.com/I5V3XaR.png', 'http://i.imgur.com/swfvqLY.png'],
+		'9': ['http://i.imgur.com/1DuX0EZ.png', 'http://i.imgur.com/6WSVugH.png'],
+		'Reverse': ['http://i.imgur.com/YECYXav.png', 'http://i.imgur.com/fB8PNLX.png'],
+		'Skip': ['http://i.imgur.com/SxtBeO8.png', 'http://i.imgur.com/bQLW8NR.png'],
+		'+2': ['http://i.imgur.com/c8dQDj1.png', 'http://i.imgur.com/Vrm9HQf.png'],
+	},
+	'Yellow': {
+		'0': ['https://i.imgur.com/lrOTrA2.png', 'https://i.imgur.com/NTSlL01.png'],
+		'1': ['http://i.imgur.com/iuBKJK3.png', 'http://i.imgur.com/gLKaoiX.png'],
+		'2': ['http://i.imgur.com/CRsDiE0.png', 'http://i.imgur.com/kKiNrnG.png'],
+		'3': ['http://i.imgur.com/t51aCvW.png', 'http://i.imgur.com/WMTnBrh.png'],
+		'4': ['http://i.imgur.com/w7CfOhG.png', 'http://i.imgur.com/wenaxRC.png'],
+		'5': ['http://i.imgur.com/il4ot0O.png', 'http://i.imgur.com/YqljaUj.png'],
+		'6': ['http://i.imgur.com/TDGzvlE.png', 'http://i.imgur.com/96lpoMf.png'],
+		'7': ['http://i.imgur.com/h65iQaC.png', 'http://i.imgur.com/sx1LhK9.png'],
+		'8': ['http://i.imgur.com/QSTYJxq.png', 'http://i.imgur.com/zSiYPZ4.png'],
+		'9': ['http://i.imgur.com/8lV4UPp.png', 'http://i.imgur.com/IKxT4a5.png'],
+		'Reverse': ['http://i.imgur.com/lUPmvTW.png', 'http://i.imgur.com/65Rdy35.png'],
+		'Skip': ['http://i.imgur.com/z99dERC.png', 'http://i.imgur.com/Ps7xyC1.png'],
+		'+2': ['http://i.imgur.com/eMYpZI0.png', 'http://i.imgur.com/5ZVAGyW.png'],
+	},
+	'Black': {
+		'Wild': ['https://i.imgur.com/xWy8VM5.png', 'https://i.imgur.com/wdLeyR1.png'],
+		'+4': ['http://i.imgur.com/25T2j9b.png', 'http://i.imgur.com/sunITaw.png'],
+	},
+};
+
+const colors = ['Red', 'Blue', 'Green', 'Yellow'];
+const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Reverse', 'Skip', '+2'];
+
+function cardImg(card, fullsize) {
+	let img = cardImages[card.color][card.value];
+	if (!img) return null;
+	img = img[(fullsize ? 1 : 0)];
+	if (!img) return null;
+	return img;
+}
 
 function cardHTML(card, fullsize) {
-	let surface = card.value.replace(/[^A-Z0-9\+]/g, "");
-	let background = rgbGradients[card.color];
-	if (surface === 'R') surface = '<i class="fa fa-refresh" aria-hidden="true"></i>';
-
-	return `<button class="button" style="font-size: 14px; font-weight: bold; color: white; ${textShadow} padding-bottom: 117px; text-align: left; height: 135px; width: ${fullsize ? '72' : '37'}px; border-radius: 10px 2px 2px 3px; color: white; background: ${card.color}; background: -webkit-linear-gradient(${background}); background: -o-linear-gradient(${background}); background: -moz-linear-gradient(${background}); background: linear-gradient(${background})" name=send value="/uno play ${card.name}">${surface}</button>`;
+	let img = cardImg(card, fullsize);
+	return `<button class="button" style="height: 135px; width: ${fullsize ? '72' : '37'}px; border-radius: 10px 2px 2px 3px; background-image: url('${img}');" name=send value="/uno play ${card.name}" title="${card.color + card.value}"></button>`;
 }
 
 function createDeck() {
-	const colors = ['Red', 'Blue', 'Green', 'Yellow'];
-	const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Reverse', 'Skip', '+2'];
-
 	let basic = [];
 
 	for (let i = 0; i < 4; i++) {
@@ -80,7 +149,7 @@ class UNOgame extends Rooms.RoomGame {
 		this.state = 'signups';
 
 		this.currentPlayer = null;
-		this.deck = Tools.shuffle(createDeck());
+		this.deck = Dex.shuffle(createDeck());
 		this.discards = [];
 		this.topCard = null;
 
@@ -92,12 +161,22 @@ class UNOgame extends Rooms.RoomGame {
 		this.sendToRoom(`|uhtml|uno-${this.room.gameNumber}|<div class="broadcast-green"><p style="font-size: 14pt; text-align: center">A new game of <strong>UNO</strong> is starting!</p><p style="font-size: 9pt; text-align: center"><button name="send" value="/uno join">Join</button><br />Or use <strong>/uno join</strong> to join the game.</p>${(this.suppressMessages ? `<p style="font-size: 6pt; text-align: center">Game messages will be shown to only players.  If you would like to spectate the game, use <strong>/uno spectate</strong></p>` : '')}</div>`, true);
 	}
 
+	onUpdateConnection() {}
+
+	onConnect(user, connection) {
+		if (this.state === 'signups') {
+			connection.sendTo(this.room, `|uhtml|uno-${this.room.gameNumber}|<div class="broadcast-green"><p style="font-size: 14pt; text-align: center">A new game of <strong>UNO</strong> is starting!</p><p style="font-size: 9pt; text-align: center"><button name="send" value="/uno join">Join</button><br />Or use <strong>/uno join</strong> to join the game.</p>${(this.suppressMessages ? `<p style="font-size: 6pt; text-align: center">Game messages will be shown to only players.  If you would like to spectate the game, use <strong>/uno spectate</strong></p>` : '')}</div>`);
+		} else if (this.onSendHand(user) === false) {
+			connection.sendTo(this.room, `|uhtml|uno-${this.room.gameNumber}|<div class="infobox"><p>A UNO game is currently in progress.</p>${(this.suppressMessages ? `<p style="font-size: 6pt">Game messages will be shown to only players.  If you would like to spectate the game, use <strong>/uno spectate</strong></p>` : '')}</div>`);
+		}
+	}
+
 	onStart() {
 		if (this.playerCount < 2) return false;
-		this.sendToRoom(`|uhtmlchange|uno-${this.room.gameNumber}|<div class="infobox">The game of UNO has started.</div>`, true);
+		this.sendToRoom(`|uhtmlchange|uno-${this.room.gameNumber}|<div class="infobox"><p>The game of UNO has started.</p>${(this.suppressMessages ? `<p style="font-size: 6pt">Game messages will be shown to only players.  If you would like to spectate the game, use <strong>/uno spectate</strong></p>` : '')}</div>`, true);
 		this.state = 'play';
 
-		this.onNextPlayer();  // determines the first player
+		this.onNextPlayer(); // determines the first player
 
 		// give cards to the players
 		for (let i in this.players) {
@@ -118,7 +197,7 @@ class UNOgame extends Rooms.RoomGame {
 
 	joinGame(user) {
 		if (this.state === 'signups' && this.addPlayer(user)) {
-			this.sendToRoom(`${user.name} has joined the game of UNO.`);
+			this.sendToRoom(`|html|${Exiled.nameColor(user.name, true, true)} has joined the game of UNO.`);
 			return true;
 		}
 		return false;
@@ -200,31 +279,44 @@ class UNOgame extends Rooms.RoomGame {
 	getPlayers(showCards) {
 		let playerList = Object.keys(this.players);
 		if (!showCards) {
-			return playerList.sort().map(id => Chat.escapeHTML(this.players[id].name));
+			return playerList.sort().map(id => Exiled.nameColor(this.players[id].name, false, true));
 		}
 		if (this.direction === -1) playerList = playerList.reverse();
-		return playerList.map(id => `${(this.currentPlayer && this.currentPlayer === id ? '<strong>' : '')}${Chat.escapeHTML(this.players[id].name)} (${this.players[id].hand.length}) ${(this.currentPlayer && this.currentPlayer === id ? '</strong>' : "")}`);
+		return playerList.map(id => `${(this.currentPlayer && this.currentPlayer === id ? "<strong>" : "")}${Exiled.nameColor(this.players[id].name, false, true)} (${this.players[id].hand.length}) ${(this.currentPlayer && this.currentPlayer === id ? "</strong>" : "")}`);
+	}
+
+	onAwaitUno() {
+		return new Promise((resolve, reject) => {
+			if (!this.awaitUno) return resolve();
+
+			// the throttle for sending messages is at 600ms for non-authed users,
+			// wait 750ms before sending the next person's turn.
+			// this allows games to be fairer, so the next player would not spam the pass command blindly
+			// to force the player to draw 2 cards.
+			// this also makes games with uno bots not always turn in the bot's favour.
+			// without a delayed turn, 3 bots playing will always result in a endless game
+			setTimeout(() => resolve(), 750);
+		});
 	}
 
 	nextTurn(starting) {
-		if (!starting) this.onNextPlayer();
+		this.onAwaitUno()
+			.then(() => {
+				if (!starting) this.onNextPlayer();
 
-		if (this.awaitUno) {
-			this.unoId = Math.floor(Math.random() * 100).toString();
-			this.players[this.awaitUno].sendRoom(`|uhtml|uno-hand|<div style="text-align: center"><button name=send value="/uno uno ${this.unoId}" style="background-color: green; width: 80%; padding: 8px; border: 2px solid rgba(33 , 68 , 72 , 0.59); border-radius: 8px">UNO!</button></div>`);
-		}
+				clearTimeout(this.timer);
+				let player = this.players[this.currentPlayer];
 
-		clearTimeout(this.timer);
-		let player = this.players[this.currentPlayer];
-		this.sendToRoom(`|c|~|${player.name}'s turn.`);
-		this.state = 'play';
-		if (player.cardLock) delete player.cardLock;
-		player.sendDisplay();
+				this.sendToRoom(`|c:|${(Math.floor(Date.now() / 1000))}|~|${player.name}'s turn.`);
+				this.state = 'play';
+				if (player.cardLock) delete player.cardLock;
+				player.sendDisplay();
 
-		this.timer = setTimeout(() => {
-			this.sendToRoom(`${player.name} has been automatically disqualified.`);
-			this.eliminate(this.currentPlayer);
-		}, this.maxTime * 1000);
+				this.timer = setTimeout(() => {
+					this.sendToRoom(`${Exiled.nameColor(player.name, true, true)} has been automatically disqualified.`);
+					this.eliminate(this.currentPlayer);
+				}, this.maxTime * 1000);
+			});
 	}
 
 	onNextPlayer() {
@@ -254,7 +346,7 @@ class UNOgame extends Rooms.RoomGame {
 
 		this.onCheckUno();
 
-		this.sendToRoom(`${user.name} has drawn a card.`);
+		this.sendToRoom(`|html|${Exiled.nameColor(user.name, true, true)} has drawn a card.`);
 		let player = this.players[user.userid];
 
 		let card = this.onDrawCard(user, 1, true);
@@ -284,16 +376,21 @@ class UNOgame extends Rooms.RoomGame {
 		this.discards.unshift(card);
 		this.changedColor = null; // clear any previous colour changes
 
+		// update the unoId here, so when the display is sent to the player when the play is made
+		if (player.hand.length === 1) {
+			this.awaitUno = user.userid;
+			this.unoId = Math.floor(Math.random() * 100).toString();
+		}
+
 		player.sendDisplay(); // update display without the card in it for purposes such as choosing colors
 
-		this.sendToRoom(`|raw|${Chat.escapeHTML(player.name)} has played a <span style="color: ${textColors[card.color]}">${card.name}</span>.`);
+		this.sendToRoom(`|raw|${Exiled.nameColor(player.name, true, true)} has played a <span style="color: ${textColors[card.color]}">${card.name}</span>.`);
 
 		// handle hand size
 		if (!player.hand.length) {
 			this.onWin(player);
 			return;
 		}
-		if (player.hand.length === 1) this.awaitUno = user.userid;
 
 		// continue with effects and next player
 		this.onRunEffect(card.value);
@@ -311,11 +408,11 @@ class UNOgame extends Rooms.RoomGame {
 			break;
 		case 'Skip':
 			this.onNextPlayer();
-			this.sendToRoom(this.players[this.currentPlayer].name + "'s turn has been skipped.");
+			this.sendToRoom(`|html|${Exiled.nameColor(this.players[this.currentPlayer].name, true, true)}'s turn has been skipped.`);
 			break;
 		case '+2':
 			this.onNextPlayer();
-			this.sendToRoom(this.players[this.currentPlayer].name + " has been forced to draw 2 cards.");
+			this.sendToRoom(`|html|${Exiled.nameColor(this.players[this.currentPlayer].name, true, true)} has been forced to draw 2 cards.`);
 			this.onDrawCard({userid: this.currentPlayer}, 2);
 			break;
 		case '+4':
@@ -323,11 +420,11 @@ class UNOgame extends Rooms.RoomGame {
 			this.state = 'color';
 			// apply to the next in line, since the current player still has to choose the color
 			let next = this.getNextPlayer();
-			this.sendToRoom(this.players[next].name + " has been forced to draw 4 cards.");
+			this.sendToRoom(`|html|${Exiled.nameColor(this.players[next].name, true, true)} has been forced to draw 4 cards`);
 			this.onDrawCard({userid: next}, 4);
 			this.isPlusFour = true;
 			this.timer = setTimeout(() => {
-				this.sendToRoom(`${this.players[this.currentPlayer].name} has been automatically disqualified.`);
+				this.sendToRoom(`|html|${Exiled.nameColor(this.players[this.currentPlayer].name, true, true)} has been automatically disqualified.`);
 				this.eliminate(this.currentPlayer);
 			}, this.maxTime * 1000);
 			break;
@@ -335,7 +432,7 @@ class UNOgame extends Rooms.RoomGame {
 			this.players[this.currentPlayer].sendRoom(colorDisplay);
 			this.state = 'color';
 			this.timer = setTimeout(() => {
-				this.sendToRoom(`${this.players[this.currentPlayer].name} has been automatically disqualified.`);
+				this.sendToRoom(`${Exiled.nameColor(this.players[this.currentPlayer].name, true, true)} has been automatically disqualified.`);
 				this.eliminate(this.currentPlayer);
 			}, this.maxTime * 1000);
 			break;
@@ -374,7 +471,7 @@ class UNOgame extends Rooms.RoomGame {
 
 		for (let i = 0; i < count; i++) {
 			if (!this.deck.length) {
-				this.deck = this.discards.length ? Tools.shuffle(this.discards) : Tools.shuffle(createDeck()); // shuffle the cards back into the deck, or if there are no discards, add another deck into the game.
+				this.deck = this.discards.length ? Dex.shuffle(this.discards) : Dex.shuffle(createDeck()); // shuffle the cards back into the deck, or if there are no discards, add another deck into the game.
 				this.discards = []; // clear discard pile
 			}
 			drawnCards.push(this.deck.pop());
@@ -385,7 +482,7 @@ class UNOgame extends Rooms.RoomGame {
 	onUno(user, unoId) {
 		// uno id makes spamming /uno uno impossible
 		if (this.unoId !== unoId || user.userid !== this.awaitUno) return false;
-		this.sendToRoom(`|raw|<strong>UNO!</strong> ${user.name} is down to their last card!`);
+		this.sendToRoom(Chat.html`|raw|<strong>UNO!</strong> $${Exiled.nameColor(user.name, true, true)} is down to their last card!`);
 		delete this.awaitUno;
 		delete this.unoId;
 	}
@@ -409,7 +506,25 @@ class UNOgame extends Rooms.RoomGame {
 	}
 
 	onWin(player) {
-		this.sendToRoom(`|raw|<div class="broadcast-green">Congratulations to ${player.name} for winning the game of UNO!</div>`, true);
+		this.sendToRoom(`|raw|<div class="broadcast-green">Congratulations to ${Exiled.nameColor(player.name, true, true)} for winning the game of UNO!</div>`, true);
+		let targetUserid = toId(player.name);
+		let prize = 2;
+		prize += Math.floor(this.playerCount / 5);
+		if (Db('userBadges').has(targetUserid) && Db('userBadges').get(targetUserid).indexOf('Uno Champion') > -1) prize = Math.ceil(prize * 1.5);
+		if (Users(targetUserid).unoBoost) prize *= 2;
+		if (Users(targetUserid).gameBoost) prize *= 2;
+		if (this.room.isOfficial) {
+			Economy.writeMoney(targetUserid, prize, newAmount => {
+				if (Users(targetUserid) && Users(targetUserid).connected) {
+					Users.get(targetUserid).popup('You have received ' + prize + ' ' + (prize === 1 ? global.moneyName : global.moneyPlural) + ' from winning the game of UNO.');
+				}
+				Economy.logTransaction(player.name + ' has won ' + prize + ' ' + (prize === 1 ? global.moneyName : global.moneyPlural) + ' from a game of UNO.');
+			});
+			for (let i = 0; i < this.players.length; i++) {
+				if (Users(this.players[i].unoBoost)) Users(this.players[i]).unoBoost = false;
+				if (Users(this.players[i].gameBoost)) Users(this.players[i]).gameBoost = false;
+			}
+		}
 		this.destroy();
 	}
 
@@ -432,7 +547,7 @@ class UNOgamePlayer extends Rooms.RoomGamePlayer {
 	}
 
 	canPlayWildFour() {
-		let color = (this.game.changedColor || this.game.topCard.color);
+		let color = (this.game.topCard.changedColor || this.game.topCard.color);
 
 		if (this.hand.some(c => c.color === color)) return false;
 		return true;
@@ -453,14 +568,15 @@ class UNOgamePlayer extends Rooms.RoomGamePlayer {
 
 	buildHand() {
 		return this.hand.sort((a, b) => a.color.localeCompare(b.color) || a.value.localeCompare(b.value))
-		.map((c, i) => cardHTML(c, i === this.hand.length - 1));
+			.map((c, i) => cardHTML(c, i === this.hand.length - 1));
 	}
 
 	sendDisplay() {
-		let hand = this.buildHand().join('');
-		let players = `<p><strong>Players (${this.game.playerCount}):</strong></p>${this.game.getPlayers(true).join('<br />')}`;
+		let hand = this.buildHand().join("");
+		let players = `<p><strong>Players (${this.game.playerCount}):</strong></p>${this.game.getPlayers(true).join("<br />")}`;
 		let draw = '<button class="button" style="width: 30%; background: rgba(0, 0, 255, 0.05)" name=send value="/uno draw">Draw a card!</button>';
 		let pass = '<button class="button" style=" width: 30%; background: rgba(255, 0, 0, 0.05)" name=send value="/uno pass">Pass!</button>';
+		let uno = `<button class="button" style=" width: 30%; background: rgba(0, 255, 0, 0.05)" name=send value="/uno uno ${this.game.unoId || '0'}">UNO!</button>`;
 
 		let top = `<strong>Top Card: <span style="color: ${textColors[this.game.topCard.color]}">${this.game.topCard.name}</span></strong>`;
 
@@ -469,7 +585,7 @@ class UNOgamePlayer extends Rooms.RoomGamePlayer {
 		this.sendRoom(
 			`|uhtml|uno-hand|<div style="border: 1px solid skyblue; padding: 0 0 5px 0"><table style="width: 100%; table-layout: fixed; border-radius: 3px"><tr><td colspan=4 rowspan=2 style="padding: 5px"><div style="overflow-x: auto; white-space: nowrap; width: 100%">${hand}</div></td>${this.game.currentPlayer === this.userid ? `<td colspan=2 style="padding: 5px 5px 0 5px">${top}</td></tr>` : ""}` +
 			`<tr><td colspan=2 style="vertical-align: top; padding: 0px 5px 5px 5px"><div style="overflow-y: scroll">${players}</div></td></tr></table>` +
-			`${this.game.currentPlayer === this.userid ? `<div style="text-align: center">${draw}<span style="padding: 15px"></span>${pass}</div>` : ""}</div>`
+			`${this.game.currentPlayer === this.userid ? `<div style="text-align: center">${draw} <span style="padding-left: 10px;"></span> ${pass} <span style="padding-left: 10px;"></span> ${uno}</div>` : ""}</div>`
 		);
 	}
 }
@@ -562,7 +678,7 @@ exports.commands = {
 			let disqualified = room.game.eliminate(toId(target));
 			if (disqualified === false) return this.errorReply(`Unable to disqualify ${target}.`);
 			this.privateModCommand(`(${user.name} has disqualified ${disqualified} from the UNO game.)`);
-			room.add(`${target} has been disqualified from the UNO game.`).update();
+			room.add(`|html|${Exiled.nameColor(target, true, true)} has been disqualified from the UNO game.`).update();
 		},
 
 		// player/user commands
@@ -599,7 +715,7 @@ exports.commands = {
 			if (room.game.currentPlayer !== user.userid) return this.errorReply("It is currently not your turn.");
 			if (!room.game.players[user.userid].cardLock) return this.errorReply("You cannot pass until you draw a card.");
 
-			room.game.sendToRoom(`${user.name} has passed.`);
+			room.game.sendToRoom(`|html|${Exiled.nameColor(user.name, true, true)} has passed.`);
 			room.game.nextTurn();
 		},
 
@@ -626,6 +742,7 @@ exports.commands = {
 		getusers: function (target, room, user) {
 			if (!room.game || room.game.gameid !== 'uno') return this.errorReply("There is no UNO game going on in this room right now.");
 			if (!this.runBroadcast()) return false;
+
 			this.sendReplyBox(`<strong>Players (${room.game.playerCount})</strong>:<br />${room.game.getPlayers().join(', ')}`);
 		},
 
@@ -668,6 +785,22 @@ exports.commands = {
 			delete room.game.spectators[user.userid];
 			this.sendReply("You are no longer spectating this private UNO game.");
 		},
+		showcase: function (target, room, user) {
+			if (!this.runBroadcast()) return;
+			let output = `<div class = "infobox infobox-limited">`;
+			for (let i = 0; i < colors.length; i++) {
+				output += `<div class="infobox" style="overflow-x: auto; white-space: nowrap; width: 100%">`;
+				for (let j = 0; j < values.length; j++) {
+					for (let k = 0; k < cardImages[colors[i]][values[j]].length; k++) {
+						output += `<img src=${cardImages[colors[i]][values[j]][k]} />&nbsp;&nbsp;`;
+					}
+				}
+				output += `</div><br />`;
+			}
+			output += `<div class="infobox" style="overflow-x: auto; white-space: nowrap; width: 100%"><img src=${cardImages['Black']['Wild'][0]} />&nbsp;&nbsp;<img src=${cardImages['Black']['Wild'][1]} />&nbsp;&nbsp;<img src=${cardImages['Black']['+4'][0]} />&nbsp;&nbsp;<img src=${cardImages['Black']['+4'][1]} />&nbsp;&nbsp;</div><br/>`;
+			output += '</div>';
+			this.sendReply('|raw|' + output);
+		},
 	},
 
 	unohelp: [
@@ -680,5 +813,6 @@ exports.commands = {
 		"/uno getusers - displays the players still in the game.",
 		"/uno [spectate | unspectate] - spectate / unspectate the current private UNO game.",
 		"/uno suppress [on | off] - Toggles suppression of game messages.",
+		"/uno showcase - Displays all of the Pokémon Plays UNO! Cards.",
 	],
 };

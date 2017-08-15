@@ -25,4 +25,20 @@ exports.BattleFormatsData = {
 		randomBattleMoves: ["fakeout", "dazzlinggleam", "boomburst", "workup", "frostbreath", "shadowball", "darkpulse", "hypnosis", "knockoff", "shadowclaw", "frustration", "reversal", "suckerpunch", "willowisp", "focusblast", "sacredfire", "nastyplot"],
 		tier: "Fakemons",
 	},
+	hydring: {
+		randomBattleMoves: ["scald", "magnetbomb", "thunderbolt", "grassknot", "ironhead"],
+		tier: "Fakemons",
+	},
+	yinyang: {
+		randomBattleMoves: ["overheat", "flamethrower", "willowisp", "iciclecrash", "freezedry", "icefang", "auroraveil", "hypervoice", "weatherball", "fakeout", "naturepower", "roar", "encore", "yawn", "bugbuzz", "snarl", "disarmingvoice", "shadowball", "shadowforce", "hex", "confuseray", "razorleaf", "magicalleaf", "earthpower", "clearsmog", "zenheadbutt", "powersplit", "guardsplit", "powerswap", "speedswap", "skillswap", "metalsound", "surf", "aqua jet"],
+		tier: "Fakemons",
+	},
+	reainein: {
+		randomBattleMoves: ["uturn", "firepunch", "bugbite", "dragonclaw"],
+		tier: "Fakemons",
+	},
+	bezzoseal: {
+		randomBattleMoves: ["uturn", "terrordrop", "rocktomb", "metalclaw", "phantomforce", "shadowforce", "bugbite", "xscissor", "sleeptalk", "lunge", "shadowsneak", "spark", "finalgambit", "sacredsword", "smartstrike", "slash", "iceshard", "iciclespear"],
+		tier: "Fakemons",
+	},
 };

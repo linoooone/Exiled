@@ -12,6 +12,7 @@ exports.BattleAbilities = {
 				this.add('-setboost', target, 'atk', 12, '[from] ability: Anger Point');
 			}
 		},
+		rating: 1.5,
 	},
 	"effectspore": {
 		inherit: true,
@@ -26,6 +27,24 @@ exports.BattleAbilities = {
 					source.setStatus('psn', target);
 				}
 			}
+		},
+	},
+	"flashfire": {
+		inherit: true,
+		effect: {
+			noCopy: true, // doesn't get copied by Baton Pass
+			onStart: function (target) {
+				this.add('-start', target, 'ability: Flash Fire');
+			},
+			onModifyDamagePhase1: function (atk, attacker, defender, move) {
+				if (move.type === 'Fire') {
+					this.debug('Flash Fire boost');
+					return this.chainModify(1.5);
+				}
+			},
+			onEnd: function (target) {
+				this.add('-end', target, 'ability: Flash Fire', '[silent]');
+			},
 		},
 	},
 	"flowergift": {
@@ -67,6 +86,10 @@ exports.BattleAbilities = {
 			let warnMove = warnMoves[this.random(warnMoves.length)];
 			this.add('-activate', pokemon, 'ability: Forewarn', warnMove);
 		},
+	},
+	"insomnia": {
+		inherit: true,
+		rating: 2.5,
 	},
 	"leafguard": {
 		inherit: true,
@@ -236,6 +259,7 @@ exports.BattleAbilities = {
 	"sturdy": {
 		inherit: true,
 		onDamage: function () {},
+		rating: 0,
 	},
 	"synchronize": {
 		inherit: true,
@@ -263,6 +287,10 @@ exports.BattleAbilities = {
 				this.add('-ability', pokemon, ability, '[from] ability: Trace', '[of] ' + target);
 			}
 		},
+	},
+	"vitalspirit": {
+		inherit: true,
+		rating: 2.5,
 	},
 	"wonderguard": {
 		inherit: true,

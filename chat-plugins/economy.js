@@ -1,8 +1,8 @@
 'use strict';
 
-const fs = require('fs');
+const FS = require('fs');
 
-// This should be the default amount of money users have.
+// This should be the default amount of money users have..
 // Ideally, this should be zero.
 const DEFAULT_AMOUNT = 0;
 
@@ -13,14 +13,14 @@ global.moneyPlural = 'Bucks';
  * Gets an amount and returns the amount with the name of the money.
  *
  * @examples
- * moneyName(0); // 0 bucks
- * moneyName(1); // 1 buck
- * moneyName(5); // 5 bucks
+ * currencyName(0); // 0 bucks
+ * currencyName(1); // 1 buck
+ * currencyName(5); // 5 bucks
  *
  * @param {Number} amount
  * @returns {String}
  */
-function moneyName(amount) {
+function currencyName(amount) {
 	let name = " buck";
 	return amount === 1 ? name : name + "s";
 }
@@ -37,6 +37,49 @@ function isMoney(money) {
 	if (String(money).includes('.')) return "Cannot contain a decimal.";
 	if (numMoney < 1) return "Cannot be less than one buck.";
 	return numMoney;
+}
+
+let shop = [
+	['Avatar', 'Buys an custom avatar to be applied to your name (You supply. Images larger than 80x80 may not show correctly).', 5],
+	['League Room', 'Purchases a room for league usage.', 5],
+	['Symbol', 'Buys a custom symbol to go infront of name and puts you at top of userlist. (Temporary until restart, certain symbols are blocked)', 5],
+	['Fix', 'Buys the ability to alter your current custom avatar or trainer card. (don\'t buy if you have neither)', 5],
+	['Custom Title', 'Buys a title to be added on your /profile (can be refused).', 10],
+	['Profile Team', 'Allows you to choose which Pokemon you want to be displayed on your /profile. PM Insist, after purchasing it to have it set. (can be denied)', 20],
+	['Icon', 'Buy a custom icon that can be applied to the rooms you want. You must take into account that the provided image should be 32 x 32', 25],
+	['Custom Color', 'Changes the color of your name (can be denied)', 25],
+	['POTD', 'Allows you to change the Pokemon of the Day that shows up guaranteed in Random Battles (can be refused, or held off if one is already active)', 25],
+	['Room', 'Buys a chatroom for you to own. (within reason, can be refused).', 30],
+	['Trainer Card', 'Buys a trainer card which shows information through a command. (You supply, can be refused)', 40],
+	['Custom Emoticon', 'You provide an image (50x50) to be added as an emote on the server. (Can be refused)', 40],
+	['Profile Help', 'Staff members will help you set your profile. (responses may not be immediate)', 50],
+	['Roomshop', 'Buys a Roomshop for your League or Room. Will be removed if abused.', 50],
+	['Custom PM Box', 'A Custom Designed PM Box Created by LassNinetales for you. [can be refused]', 75],
+	['Staffmon', 'Buys a Pokemon with your name on it etc to be added in the Exiled Super Staff Bros metagame. Insist will code it, so PM a pastebin/hastebin of what you want the staffmon to have. (can be refused/edited)', 500],
+];
+
+let shopDisplay = getShopDisplay(shop);
+
+/**
+ * Displays the shop
+ *
+ * @param {Array} shop
+ * @return {String} display
+ */
+function getShopDisplay(shop) {
+	let display = "<center><img src=https://play.pokemonshowdown.com/sprites/xyani/darkrai.gif><img src=http://i.imgur.com/WOewQZw.gif width=300> <img src=https://play.pokemonshowdown.com/sprites/xyani/cresselia.gif></center><br><div' + (!this.isOfficial ? ' class=infobox-limited' : '') + '><table style='background: #000; border-color: #DF0101; border-radius: 8px' border='1' cellspacing='0' cellpadding='5' width='100%'>" +
+		"<tbody><tr><th><font color=#DF0101 face=courier>Item</font></th><th><font color=#DF0101 face=courier>Description</font></th><th><font color=#DF0101 face=courier>Price</font></th></tr>";
+	let start = 0;
+	while (start < shop.length) {
+		display += "<tr>" +
+			"<td align='center'><button name='send' style='background: #000; border-radius: 5px; border: solid, 1px, #DF0101; font-size: 11px; padding: 5px 10px' value='/buy " + shop[start][0] + "'><font color=#DF0101 face=courier><b>" + shop[start][0] + "</b></font></button>" + "</td>" +
+			"<td align='center'><font color=#DF0101 face=courier>" + shop[start][1] + "</font></td>" +
+			"<td align='center'><font color=#DF0101 face=courier>" + shop[start][2] + "</font></td>" +
+			"</tr>";
+		start++;
+	}
+	display += "</tbody></table></div><br><center><font color=#000 face=courier>To buy an item from the shop, use /buy <em>Item</em>.</font></center>";
+	return display;
 }
 
 let Economy = global.Economy = {
@@ -95,14 +138,54 @@ let Economy = global.Economy = {
 	},
 	logTransaction: function (message) {
 		if (!message) return false;
-		fs.appendFile('logs/transactions.log', '[' + new Date().toUTCString() + '] ' + message + '\n');
+		FS.appendFile('logs/transactions.log', '[' + new Date().toUTCString() + '] ' + message + '\n');
 	},
 
 	logDice: function (message) {
 		if (!message) return false;
-		fs.appendFile('logs/dice.log', '[' + new Date().toUTCString() + '] ' + message + '\n');
+		FS.appendFile('logs/dice.log', '[' + new Date().toUTCString() + '] ' + message + '\n');
 	},
 };
+
+function findItem(item, money) {
+	let len = shop.length;
+	let price = 0;
+	let amount = 0;
+	while (len--) {
+		if (item.toLowerCase() !== shop[len][0].toLowerCase()) continue;
+		price = shop[len][2];
+		if (price > money) {
+			amount = price - money;
+			this.errorReply("You don't have you enough money for this. You need " + amount + currencyName(amount) + " more to buy " + item + ".");
+			return false;
+		}
+		return price;
+	}
+	this.errorReply(item + " not found in shop.");
+}
+
+function handleBoughtItem(item, user, cost) {
+	if (item === 'symbol') {
+		user.canCustomSymbol = true;
+		this.sendReply("You have purchased a custom symbol. You can use /customsymbol to get your custom symbol.");
+		this.sendReply("You will have this until you log off for more than an hour.");
+		this.sendReply("If you do not want your custom symbol anymore, you may use /resetsymbol to go back to your old symbol.");
+	} else if (item === 'icon') {
+		this.sendReply('You purchased an icon, contact an administrator to obtain the article.');
+	} else if (item === 'profileteam') {
+		Db('hasteam').set(user);
+		this.sendReply('You can now set your team!');
+	} else {
+		let msg = '**' + user.name + " has bought " + item + ".**";
+		Rooms.rooms.get("staff").add('|c|~Exiled Server|' + msg);
+		Rooms.rooms.get("staff").update();
+		Users.users.forEach(function (user) {
+			if (user.group === '~' || user.group === '&' || user.group === '@') {
+				user.send('|pm|~Exiled Server|' + user.getIdentity() + '|' + msg);
+			}
+		});
+	}
+}
 
 exports.commands = {
 	'!wallet': true,
@@ -133,8 +216,8 @@ exports.commands = {
 		if (typeof amount === 'string') return this.errorReply(amount);
 
 		let total = Db('money').set(toId(username), Db('money').get(toId(username), 0) + amount).get(toId(username));
-		amount = amount + moneyName(amount);
-		total = total + moneyName(total);
+		amount = amount + currencyName(amount);
+		total = total + currencyName(total);
 		this.sendReply(username + " was given " + amount + ". " + username + " now has " + total + ".");
 		if (Users.get(username)) Users(username).popup(user.name + " has given you " + amount + ". You now have " + total + ".");
 		Economy.logTransaction(username + " was given " + amount + " by " + user.name + ". " + username + " now has " + total);
@@ -154,9 +237,9 @@ exports.commands = {
 		if (typeof amount === 'string') return this.errorReply(amount);
 
 		let total = Db('money').set(toId(username), Db('money').get(toId(username), 0) - amount).get(toId(username));
-		amount = amount + moneyName(amount);
-		total = total + moneyName(total);
-		this.sendReply(username + " losted " + amount + ". " + username + " now has " + total + ".");
+		amount = amount + currencyName(amount);
+		total = total + currencyName(total);
+		this.sendReply(username + " lost " + amount + ". " + username + " now has " + total + ".");
 		if (Users.get(username)) Users(username).popup(user.name + " has taken " + amount + " from you. You now have " + total + ".");
 		Economy.logTransaction(username + " had " + amount + " taken away by " + user.name + ". " + username + " now has " + total);
 	},
@@ -182,9 +265,9 @@ exports.commands = {
 			.set(user.userid, Db('money').get(user.userid) - amount)
 			.set(uid, Db('money').get(uid, 0) + amount);
 
-		let userTotal = Db('money').get(user.userid) + moneyName(Db('money').get(user.userid));
-		let targetTotal = Db('money').get(uid) + moneyName(Db('money').get(uid));
-		amount = amount + moneyName(amount);
+		let userTotal = Db('money').get(user.userid) + currencyName(Db('money').get(user.userid));
+		let targetTotal = Db('money').get(uid) + currencyName(Db('money').get(uid));
+		amount = amount + currencyName(amount);
 
 		this.sendReply("You have successfully transferred " + amount + ". You now have " + userTotal + ".");
 		if (Users.get(username)) Users(username).popup(user.name + " has transferred " + amount + ". You now have " + targetTotal + ".");
@@ -197,10 +280,10 @@ exports.commands = {
 		if (!target) return this.sendReply("Usage: /moneylog [number] to view the last x lines OR /moneylog [text] to search for text.");
 		let word = false;
 		if (isNaN(Number(target))) word = true;
-		let lines = fs.readFileSync('logs/transactions.log', 'utf8').split('\n').reverse();
+		let lines = FS.readFileSync('logs/transactions.log', 'utf8').split('\n').reverse();
 		let output = '';
 		let count = 0;
-		let regex = new RegExp(target.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "gi");
+		let regex = new RegExp(target.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), "gi");
 
 		if (word) {
 			output += 'Displaying last 50 lines containing "' + target + '":\n';
@@ -218,6 +301,27 @@ exports.commands = {
 		}
 		user.popup("|wide|" + output);
 	},
+
+	store: 'shop',
+	shop: function (target, room, user) {
+		if (!this.runBroadcast()) return;
+		return this.sendReply("|raw|" + shopDisplay);
+	},
+	shophelp: ["/shop - Display items you can buy with money."],
+
+	buy: function (target, room, user) {
+		if (!target) return this.parse('/help buy');
+		let amount = Db('money').get(user.userid, 0);
+		let cost = findItem.call(this, target, amount);
+		if (!cost) return;
+		let total = Db('money').set(user.userid, amount - cost).get(user.userid);
+		this.sendReply("You have bought " + target + " for " + cost + currencyName(cost) + ". You now have " + total + currencyName(total) + " left.");
+		room.addRaw(user.name + " has bought <b>" + target + "</b> from the shop.");
+		Economy.logTransaction(user.name + " has bought " + target + " from the shop. This user now has " + total + currencyName(total) + ".");
+		handleBoughtItem.call(this, target.toLowerCase(), user, cost);
+	},
+	buyhelp: ["/buy [command] - Buys an item from the shop."],
+
 	'!richestuser': true,
 	richestusers: 'richestuser',
 	richestuser: function (target, room, user) {
@@ -254,7 +358,7 @@ exports.commands = {
 		if (!this.can('forcewin')) return false;
 		Db('money').set(toId(target), 0);
 		this.sendReply(target + " now has 0 bucks.");
-		logMoney(user.name + " reset the money of " + target + ".");
+		Economy.logTransaction(user.name + " reset the money of " + target + ".");
 	},
 	resetmoneyhelp: ["/resetmoney [user] - Reset user's money to zero."],
 
@@ -278,5 +382,18 @@ exports.commands = {
 		delete user.customSymbol;
 		user.updateIdentity();
 		this.sendReply('Your symbol has been removed.');
+	},
+
+	bucks: 'economystats',
+	economystats: function (target, room, user) {
+		if (!this.runBroadcast()) return;
+		const users = Object.keys(Db('money').object());
+		const total = users.reduce(function (acc, cur) {
+			return acc + Db('money').get(cur);
+		}, 0);
+		let average = Math.floor(total / users.length) || '0';
+		let output = "There " + (total > 1 ? "are " : "is ") + total + currencyName(total) + " circulating in the economy. ";
+		output += "The average user has " + average + currencyName(average) + ".";
+		this.sendReplyBox(output);
 	},
 };

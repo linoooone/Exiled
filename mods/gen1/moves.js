@@ -486,24 +486,7 @@ exports.BattleMovedex = {
 	},
 	metronome: {
 		inherit: true,
-		onHit: function (target) {
-			let moves = [];
-			for (let i in exports.BattleMovedex) {
-				let move = exports.BattleMovedex[i];
-				if (i !== move.id) continue;
-				if (move.isNonstandard) continue;
-				let noMetronome = {
-					metronome:1, struggle:1,
-				};
-				if (!noMetronome[move.id] && move.num <= 165) {
-					moves.push(move.id);
-				}
-			}
-			let randomMove = '';
-			if (moves.length) randomMove = moves[this.random(moves.length)];
-			if (!randomMove) return false;
-			this.useMove(randomMove, target);
-		},
+		noMetronome: {metronome:1, struggle:1},
 		secondary: false,
 		target: "self",
 		type: "Normal",
@@ -764,7 +747,7 @@ exports.BattleMovedex = {
 		effect: {
 			onStart: function (target) {
 				this.add('-start', target, 'Substitute');
-				this.effectData.hp = Math.floor(target.maxhp / 4);
+				this.effectData.hp = Math.floor(target.maxhp / 4) + 1;
 				delete target.volatiles['partiallytrapped'];
 			},
 			onTryHitPriority: -1,

@@ -4,7 +4,6 @@ exports.BattleItems = {
 	"abomasite": {
 		id: "abomasite",
 		name: "Abomasite",
-		isUnreleased: true,
 		spritenum: 575,
 		megaStone: "Abomasnow-Mega",
 		megaEvolves: "Abomasnow",
@@ -96,7 +95,6 @@ exports.BattleItems = {
 	"aggronite": {
 		id: "aggronite",
 		name: "Aggronite",
-		isUnreleased: true,
 		spritenum: 578,
 		megaStone: "Aggron-Mega",
 		megaEvolves: "Aggron",
@@ -147,7 +145,7 @@ exports.BattleItems = {
 				this.add('-item', target, 'Air Balloon');
 			}
 		},
-		// airborneness implemented in battle-engine.js:BattlePokemon#isGrounded
+		// airborneness implemented in sim/pokemon.js:Pokemon#isGrounded
 		onAfterDamage: function (damage, target, source, effect) {
 			this.debug('effect: ' + effect.id);
 			if (effect.effectType === 'Move' && effect.id !== 'confused') {
@@ -161,7 +159,9 @@ exports.BattleItems = {
 			this.debug('effect: ' + effect.id);
 			if (effect.effectType === 'Move' && effect.id !== 'confused') {
 				this.add('-enditem', target, 'Air Balloon');
-				target.setItem('');
+				target.item = '';
+				this.itemData = {id: '', target: this};
+				this.runEvent('AfterUseItem', target, null, null, 'airballoon');
 			}
 		},
 		num: 541,
@@ -197,7 +197,6 @@ exports.BattleItems = {
 	"altarianite": {
 		id: "altarianite",
 		name: "Altarianite",
-		isUnreleased: true,
 		spritenum: 615,
 		megaStone: "Altaria-Mega",
 		megaEvolves: "Altaria",
@@ -212,7 +211,6 @@ exports.BattleItems = {
 	"ampharosite": {
 		id: "ampharosite",
 		name: "Ampharosite",
-		isUnreleased: true,
 		spritenum: 580,
 		megaStone: "Ampharos-Mega",
 		megaEvolves: "Ampharos",
@@ -244,6 +242,20 @@ exports.BattleItems = {
 		num: 205,
 		gen: 3,
 		desc: "Raises holder's Sp. Def by 1 stage when at 1/4 max HP or less. Single use.",
+	},
+	"arbokite": {
+		id: "arbokite",
+		name: "Arbokite",
+		spritenum: -246,
+		megaStone: "Arbok-Mega",
+		megaEvolves: "Arbok",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -1001,
+		gen: 0,
+		desc: "If holder is a Arbok, this item allows it to Mega Evolve in battle.",
 	},
 	"armorfossil": {
 		id: "armorfossil",
@@ -342,7 +354,6 @@ exports.BattleItems = {
 	"banettite": {
 		id: "banettite",
 		name: "Banettite",
-		isUnreleased: true,
 		spritenum: 582,
 		megaStone: "Banette-Mega",
 		megaEvolves: "Banette",
@@ -379,7 +390,6 @@ exports.BattleItems = {
 	"belueberry": {
 		id: "belueberry",
 		name: "Belue Berry",
-		isUnreleased: true,
 		spritenum: 21,
 		isBerry: true,
 		naturalGift: {
@@ -510,7 +520,6 @@ exports.BattleItems = {
 	"blazikenite": {
 		id: "blazikenite",
 		name: "Blazikenite",
-		isUnreleased: true,
 		spritenum: 584,
 		megaStone: "Blaziken-Mega",
 		megaEvolves: "Blaziken",
@@ -587,7 +596,6 @@ exports.BattleItems = {
 	"buggem": {
 		id: "buggem",
 		name: "Bug Gem",
-		isUnreleased: true,
 		spritenum: 53,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -651,7 +659,6 @@ exports.BattleItems = {
 	"cameruptite": {
 		id: "cameruptite",
 		name: "Cameruptite",
-		isUnreleased: true,
 		spritenum: 625,
 		megaStone: "Camerupt-Mega",
 		megaEvolves: "Camerupt",
@@ -662,6 +669,20 @@ exports.BattleItems = {
 		num: 767,
 		gen: 6,
 		desc: "If holder is a Camerupt, this item allows it to Mega Evolve in battle.",
+	},
+	"cofagrite": {
+		id: "cofagrite",
+		name: "Cofagrite",
+		spritenum: 588,
+		megaStone: "Cofagrigus-Mega",
+		megaEvolves: "Cofagrigus",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -1003,
+		gen: 7,
+		desc: "If holder is a Cofagrigus, this item allows it to Mega Evolve in battle.",
 	},
 	"cellbattery": {
 		id: "cellbattery",
@@ -997,7 +1018,6 @@ exports.BattleItems = {
 	"cornnberry": {
 		id: "cornnberry",
 		name: "Cornn Berry",
-		isUnreleased: true,
 		spritenum: 81,
 		isBerry: true,
 		naturalGift: {
@@ -1023,7 +1043,6 @@ exports.BattleItems = {
 	"custapberry": {
 		id: "custapberry",
 		name: "Custap Berry",
-		isUnreleased: true,
 		spritenum: 86,
 		isBerry: true,
 		naturalGift: {
@@ -1059,7 +1078,6 @@ exports.BattleItems = {
 	"darkgem": {
 		id: "darkgem",
 		name: "Dark Gem",
-		isUnreleased: true,
 		spritenum: 89,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1118,7 +1136,7 @@ exports.BattleItems = {
 	},
 	"deepseascale": {
 		id: "deepseascale",
-		name: "DeepSeaScale",
+		name: "Deep Sea Scale",
 		spritenum: 93,
 		fling: {
 			basePower: 30,
@@ -1135,7 +1153,7 @@ exports.BattleItems = {
 	},
 	"deepseatooth": {
 		id: "deepseatooth",
-		name: "DeepSeaTooth",
+		name: "Deep Sea Tooth",
 		spritenum: 94,
 		fling: {
 			basePower: 90,
@@ -1170,7 +1188,6 @@ exports.BattleItems = {
 	"diancite": {
 		id: "diancite",
 		name: "Diancite",
-		isUnreleased: true,
 		spritenum: 624,
 		megaStone: "Diancie-Mega",
 		megaEvolves: "Diancie",
@@ -1259,7 +1276,6 @@ exports.BattleItems = {
 	"dragongem": {
 		id: "dragongem",
 		name: "Dragon Gem",
-		isUnreleased: true,
 		spritenum: 107,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1337,7 +1353,6 @@ exports.BattleItems = {
 	"durinberry": {
 		id: "durinberry",
 		name: "Durin Berry",
-		isUnreleased: true,
 		spritenum: 114,
 		isBerry: true,
 		naturalGift: {
@@ -1426,7 +1441,6 @@ exports.BattleItems = {
 	"electricgem": {
 		id: "electricgem",
 		name: "Electric Gem",
-		isUnreleased: true,
 		spritenum: 120,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1501,7 +1515,6 @@ exports.BattleItems = {
 	"enigmaberry": {
 		id: "enigmaberry",
 		name: "Enigma Berry",
-		isUnreleased: true,
 		spritenum: 124,
 		isBerry: true,
 		naturalGift: {
@@ -1578,7 +1591,6 @@ exports.BattleItems = {
 	"fairygem": {
 		id: "fairygem",
 		name: "Fairy Gem",
-		isUnreleased: true,
 		spritenum: 611,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1621,7 +1633,6 @@ exports.BattleItems = {
 	"fightinggem": {
 		id: "fightinggem",
 		name: "Fighting Gem",
-		isUnreleased: true,
 		spritenum: 139,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1696,7 +1707,6 @@ exports.BattleItems = {
 	"firegem": {
 		id: "firegem",
 		name: "Fire Gem",
-		isUnreleased: true,
 		spritenum: 141,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1819,7 +1829,6 @@ exports.BattleItems = {
 	"flyinggem": {
 		id: "flyinggem",
 		name: "Flying Gem",
-		isUnreleased: true,
 		spritenum: 149,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -1872,14 +1881,14 @@ exports.BattleItems = {
 			basePower: 10,
 		},
 		onDamage: function (damage, target, source, effect) {
-			if (this.random(10) === 0 && damage >= target.hp && effect && effect.effectType === 'Move') {
+			if (this.random(90) === 90 && damage >= target.hp && effect && effect.effectType === 'Move') {
 				this.add("-activate", target, "item: Focus Band");
 				return target.hp - 1;
 			}
 		},
 		num: 230,
 		gen: 2,
-		desc: "Holder has a 10% chance to survive an attack that would KO it with 1 HP.",
+		desc: "Holder has a 90% chance to survive an attack that would KO it with 1 HP.",
 	},
 	"focussash": {
 		id: "focussash",
@@ -1924,7 +1933,6 @@ exports.BattleItems = {
 	"galladite": {
 		id: "galladite",
 		name: "Galladite",
-		isUnreleased: true,
 		spritenum: 616,
 		megaStone: "Gallade-Mega",
 		megaEvolves: "Gallade",
@@ -1974,7 +1982,6 @@ exports.BattleItems = {
 	"gardevoirite": {
 		id: "gardevoirite",
 		name: "Gardevoirite",
-		isUnreleased: true,
 		spritenum: 587,
 		megaStone: "Gardevoir-Mega",
 		megaEvolves: "Gardevoir",
@@ -2003,7 +2010,6 @@ exports.BattleItems = {
 	"ghostgem": {
 		id: "ghostgem",
 		name: "Ghost Gem",
-		isUnreleased: true,
 		spritenum: 161,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -2065,7 +2071,6 @@ exports.BattleItems = {
 	"grassgem": {
 		id: "grassgem",
 		name: "Grass Gem",
-		isUnreleased: true,
 		spritenum: 172,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -2187,7 +2192,6 @@ exports.BattleItems = {
 	"groundgem": {
 		id: "groundgem",
 		name: "Ground Gem",
-		isUnreleased: true,
 		spritenum: 182,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -2327,7 +2331,6 @@ exports.BattleItems = {
 	"heracronite": {
 		id: "heracronite",
 		name: "Heracronite",
-		isUnreleased: true,
 		spritenum: 590,
 		megaStone: "Heracross-Mega",
 		megaEvolves: "Heracross",
@@ -2356,7 +2359,6 @@ exports.BattleItems = {
 	"houndoominite": {
 		id: "houndoominite",
 		name: "Houndoominite",
-		isUnreleased: true,
 		spritenum: 591,
 		megaStone: "Houndoom-Mega",
 		megaEvolves: "Houndoom",
@@ -2398,7 +2400,6 @@ exports.BattleItems = {
 	"icegem": {
 		id: "icegem",
 		name: "Ice Gem",
-		isUnreleased: true,
 		spritenum: 218,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -2521,7 +2522,7 @@ exports.BattleItems = {
 			if (target.volatiles['ingrain'] || target.volatiles['smackdown'] || this.getPseudoWeather('gravity')) return;
 			if (move.type === 'Ground' && target.hasType('Flying')) return 0;
 		},
-		// airborneness negation implemented in battle-engine.js:BattlePokemon#isGrounded
+		// airborneness negation implemented in sim/pokemon.js:Pokemon#isGrounded
 		onModifySpe: function (spe) {
 			return this.chainModify(0.5);
 		},
@@ -2554,7 +2555,6 @@ exports.BattleItems = {
 	"jabocaberry": {
 		id: "jabocaberry",
 		name: "Jaboca Berry",
-		isUnreleased: true,
 		spritenum: 230,
 		isBerry: true,
 		naturalGift: {
@@ -2731,7 +2731,6 @@ exports.BattleItems = {
 	"latiasite": {
 		id: "latiasite",
 		name: "Latiasite",
-		isUnreleased: true,
 		spritenum: 629,
 		megaStone: "Latias-Mega",
 		megaEvolves: "Latias",
@@ -2746,7 +2745,6 @@ exports.BattleItems = {
 	"latiosite": {
 		id: "latiosite",
 		name: "Latiosite",
-		isUnreleased: true,
 		spritenum: 630,
 		megaStone: "Latios-Mega",
 		megaEvolves: "Latios",
@@ -2930,7 +2928,6 @@ exports.BattleItems = {
 	"lopunnite": {
 		id: "lopunnite",
 		name: "Lopunnite",
-		isUnreleased: true,
 		spritenum: 626,
 		megaStone: "Lopunny-Mega",
 		megaEvolves: "Lopunny",
@@ -3054,7 +3051,6 @@ exports.BattleItems = {
 	"machobrace": {
 		id: "machobrace",
 		name: "Macho Brace",
-		isUnreleased: true,
 		spritenum: 269,
 		ignoreKlutz: true,
 		fling: {
@@ -3114,7 +3110,6 @@ exports.BattleItems = {
 	"magostberry": {
 		id: "magostberry",
 		name: "Magost Berry",
-		isUnreleased: true,
 		spritenum: 275,
 		isBerry: true,
 		naturalGift: {
@@ -3134,14 +3129,12 @@ exports.BattleItems = {
 			if (!this.activeMove) return false;
 			if (this.activeMove.id !== 'knockoff' && this.activeMove.id !== 'thief' && this.activeMove.id !== 'covet') return false;
 		},
-		isUnreleased: true,
 		gen: 2,
 		desc: "Cannot be given to or taken from a Pokemon, except by Covet/Knock Off/Thief.",
 	},
 	"manectite": {
 		id: "manectite",
 		name: "Manectite",
-		isUnreleased: true,
 		spritenum: 596,
 		megaStone: "Manectric-Mega",
 		megaEvolves: "Manectric",
@@ -3177,7 +3170,6 @@ exports.BattleItems = {
 	"marshadiumz": {
 		id: "marshadiumz",
 		name: "Marshadium Z",
-		isUnreleased: true,
 		spritenum: 654,
 		onTakeItem: false,
 		zMove: "Soul-Stealing 7-Star Strike",
@@ -3186,6 +3178,18 @@ exports.BattleItems = {
 		num: 802,
 		gen: 7,
 		desc: "If holder is Marshadow with Spectral Thief, it can use Soul-Stealing 7-Star Strike.",
+	},
+	"magikariumz": {
+		id: "magikariumz",
+		name: "Magikarium Z",
+		spritenum: -654,
+		onTakeItem: false,
+		zMove: "Epic Splash",
+		zMoveFrom: "Splash",
+		zMoveUser: ["Magikarp"],
+		num: -802,
+		gen: 7,
+		desc: "If holder is Magikarp with Splash, it can use Epic Splash.",
 	},
 	"masterball": {
 		id: "masterball",
@@ -3413,7 +3417,6 @@ exports.BattleItems = {
 	"micleberry": {
 		id: "micleberry",
 		name: "Micle Berry",
-		isUnreleased: true,
 		spritenum: 290,
 		isBerry: true,
 		naturalGift: {
@@ -3542,7 +3545,6 @@ exports.BattleItems = {
 	"nanabberry": {
 		id: "nanabberry",
 		name: "Nanab Berry",
-		isUnreleased: true,
 		spritenum: 302,
 		isBerry: true,
 		naturalGift: {
@@ -3590,7 +3592,6 @@ exports.BattleItems = {
 	"nomelberry": {
 		id: "nomelberry",
 		name: "Nomel Berry",
-		isUnreleased: true,
 		spritenum: 306,
 		isBerry: true,
 		naturalGift: {
@@ -3709,7 +3710,6 @@ exports.BattleItems = {
 	"pamtreberry": {
 		id: "pamtreberry",
 		name: "Pamtre Berry",
-		isUnreleased: true,
 		spritenum: 323,
 		isBerry: true,
 		naturalGift: {
@@ -3869,7 +3869,6 @@ exports.BattleItems = {
 	"pikashuniumz": {
 		id: "pikashuniumz",
 		name: "Pikashunium Z",
-		isUnreleased: true,
 		spritenum: 659,
 		onTakeItem: false,
 		zMove: "10,000,000 Volt Thunderbolt",
@@ -3961,7 +3960,6 @@ exports.BattleItems = {
 	"poisongem": {
 		id: "poisongem",
 		name: "Poison Gem",
-		isUnreleased: true,
 		spritenum: 344,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -4172,7 +4170,6 @@ exports.BattleItems = {
 	"psychicgem": {
 		id: "psychicgem",
 		name: "Psychic Gem",
-		isUnreleased: true,
 		spritenum: 369,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -4292,7 +4289,6 @@ exports.BattleItems = {
 	"rabutaberry": {
 		id: "rabutaberry",
 		name: "Rabuta Berry",
-		isUnreleased: true,
 		spritenum: 375,
 		isBerry: true,
 		naturalGift: {
@@ -4380,7 +4376,6 @@ exports.BattleItems = {
 	"razzberry": {
 		id: "razzberry",
 		name: "Razz Berry",
-		isUnreleased: true,
 		spritenum: 384,
 		isBerry: true,
 		naturalGift: {
@@ -4453,6 +4448,20 @@ exports.BattleItems = {
 		gen: 3,
 		desc: "A Poke Ball that works well on Pokemon species that were previously caught.",
 	},
+	"ribombite": {
+		id: "ribombite",
+		name: "Ribombite",
+		spritenum: -342,
+		megaStone: "Ribombee-Mega",
+		megaEvolves: "Ribombee",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 3333,
+		gen: 7,
+		desc: "If holder is a Ribombee, this item allows it to Mega Evolve in battle.",
+	},
 	"rindoberry": {
 		id: "rindoberry",
 		name: "Rindo Berry",
@@ -4491,7 +4500,6 @@ exports.BattleItems = {
 	"rockgem": {
 		id: "rockgem",
 		name: "Rock Gem",
-		isUnreleased: true,
 		spritenum: 415,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -4624,7 +4632,6 @@ exports.BattleItems = {
 	"rowapberry": {
 		id: "rowapberry",
 		name: "Rowap Berry",
-		isUnreleased: true,
 		spritenum: 420,
 		isBerry: true,
 		naturalGift: {
@@ -4720,10 +4727,23 @@ exports.BattleItems = {
 		gen: 6,
 		desc: "If holder is a Salamence, this item allows it to Mega Evolve in battle.",
 	},
+	"sevipite": {
+		id: "sevipite",
+		name: "Sevipite",
+		spritenum: -248,
+		megaStone: "Seviper-Mega",
+		megaEvolves: "Seviper",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -1000,
+		gen: 0,
+		desc: "If holder is a Seviper, this item allows it to Mega Evolve in battle.",
+	},
 	"sceptilite": {
 		id: "sceptilite",
 		name: "Sceptilite",
-		isUnreleased: true,
 		spritenum: 613,
 		megaStone: "Sceptile-Mega",
 		megaEvolves: "Sceptile",
@@ -4882,6 +4902,29 @@ exports.BattleItems = {
 		gen: 4,
 		desc: "Halves damage taken from a supereffective Ground-type attack. Single use.",
 	},
+	"ironrod": {
+		id: "ironron",
+		name: "Iron Rod",
+		spritenum: 443,
+		isBerry: true,
+		naturalGift: {
+			basePower: 100,
+			type: "Steel",
+		},
+		onSourceModifyDamage: function (damage, source, target, move) {
+			if (move.type === 'Electric' && move.typeMod > 0 && (!target.volatiles['substitute'] || move.flags['authentic'] || (move.infiltrates && this.gen >= 6))) {
+				if (target.eatItem()) {
+					this.debug('-50% reduction');
+					this.add('-enditem', target, this.effect, '[weaken]');
+					return this.chainModify(0);
+				}
+			}
+		},
+		onEat: function () { },
+		num: 191,
+		gen: 4,
+		desc: "Nullifies an Electric-type move that hits the user. Single use.",
+	},
 	"silkscarf": {
 		id: "silkscarf",
 		name: "Silk Scarf",
@@ -4998,6 +5041,20 @@ exports.BattleItems = {
 		gen: 4,
 		desc: "Holder's use of Sandstorm lasts 8 turns instead of 5.",
 	},
+	"snorlaxite": {
+		id: "snorlaxite",
+		name: "Snorlaxite",
+		spritenum: -634,
+		megaStone: "Snorlax-Mega",
+		megaEvolves: "Snorlax",
+		ontakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -765,
+		gen: 0,
+		desc: "If the holder is a Snorlax, this item allows it to Mega Evolve in battle.",
+	},
 	"snorliumz": {
 		id: "snorliumz",
 		name: "Snorlium Z",
@@ -5080,7 +5137,6 @@ exports.BattleItems = {
 	"spelonberry": {
 		id: "spelonberry",
 		name: "Spelon Berry",
-		isUnreleased: true,
 		spritenum: 462,
 		isBerry: true,
 		naturalGift: {
@@ -5193,7 +5249,6 @@ exports.BattleItems = {
 	"steelgem": {
 		id: "steelgem",
 		name: "Steel Gem",
-		isUnreleased: true,
 		spritenum: 473,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -5302,7 +5357,6 @@ exports.BattleItems = {
 	"swampertite": {
 		id: "swampertite",
 		name: "Swampertite",
-		isUnreleased: true,
 		spritenum: 612,
 		megaStone: "Swampert-Mega",
 		megaEvolves: "Swampert",
@@ -5458,7 +5512,6 @@ exports.BattleItems = {
 	"tyranitarite": {
 		id: "tyranitarite",
 		name: "Tyranitarite",
-		isUnreleased: true,
 		spritenum: 607,
 		megaStone: "Tyranitar-Mega",
 		megaEvolves: "Tyranitar",
@@ -5518,7 +5571,6 @@ exports.BattleItems = {
 	"watergem": {
 		id: "watergem",
 		name: "Water Gem",
-		isUnreleased: true,
 		spritenum: 528,
 		isGem: true,
 		onSourceTryPrimaryHit: function (target, source, move) {
@@ -5566,7 +5618,6 @@ exports.BattleItems = {
 	"watmelberry": {
 		id: "watmelberry",
 		name: "Watmel Berry",
-		isUnreleased: true,
 		spritenum: 530,
 		isBerry: true,
 		naturalGift: {
@@ -5602,6 +5653,7 @@ exports.BattleItems = {
 		fling: {
 			basePower: 80,
 		},
+		onHitPriority: 1,
 		onHit: function (target, source, move) {
 			if (target.hp && move.category !== 'Status' && !move.damage && !move.damageCallback && move.typeMod > 0 && target.useItem()) {
 				this.boost({atk: 2, spa: 2});
@@ -5614,7 +5666,6 @@ exports.BattleItems = {
 	"wepearberry": {
 		id: "wepearberry",
 		name: "Wepear Berry",
-		isUnreleased: true,
 		spritenum: 533,
 		isBerry: true,
 		naturalGift: {
@@ -5643,6 +5694,7 @@ exports.BattleItems = {
 				}
 				if (activate) {
 					pokemon.setBoost(boosts);
+					this.add('-clearnegativeboost', pokemon, '[silent]');
 				}
 			},
 		},
@@ -6129,5 +6181,1474 @@ exports.BattleItems = {
 		gen: 6,
 		isNonstandard: true,
 		desc: "If holder is a Crucibelle, this item allows it to Mega Evolve in battle.",
+	},
+	"staticorb": {
+		id: "staticorb",
+		name: "Static Orb",
+		spritenum: 251,
+		fling: {
+			basePower: 30,
+			status: 'par',
+		},
+		onResidualOrder: 26,
+		onResidualSubOrder: 2,
+		onResidual: function (pokemon) {
+			pokemon.trySetStatus('par');
+		},
+		num: 273,
+		gen: 0,
+		desc: "At the end of every turn, this item attempts to paralyze the holder.",
+	},
+	"furretite": {
+		id: "furretite",
+		name: "Furretite",
+		spritenum: -224,
+		megaStone: "Furret-Mega",
+		megaEvolves: "Furret",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -99,
+		gen: 0,
+		desc: "If holder is a Furret, this item allows it to Mega Evolve in battle.",
+	},
+	"flygonite": {
+		id: "flygonite",
+		name: "Flygonite",
+		spritenum: -225,
+		megaStone: "Flygon-Mega",
+		megaEvolves: "Flygon",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -100,
+		gen: 0,
+		desc: "If holder is a Flygon, this item allows it to Mega Evolve in battle.",
+	},
+	"luxrite": {
+		id: "luxrite",
+		name: "Luxrite",
+		spritenum: -226,
+		megaStone: "Luxray-Mega",
+		megaEvolves: "Luxray",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -101,
+		gen: 0,
+		desc: "If holder is a Luxray, this item allows it to Mega Evolve in battle.",
+	},
+	"walrite": {
+		id: "walrite",
+		name: "Walrite",
+		spritenum: -225,
+		megaStone: "Walrein-Mega",
+		megaEvolves: "Walrein",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -102,
+		gen: 0,
+		desc: "If holder is a Walrein, this item allows it to Mega Evolve in battle.",
+	},
+	"butterfrite": {
+		id: "butterfrite",
+		name: "Butterfrite",
+		spritenum: -226,
+		megaStone: "Butterfree-Mega",
+		megaEvolves: "Butterfree",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -103,
+		gen: 0,
+		desc: "If holder is a Butterfree, this item allows it to Mega Evolve in battle.",
+	},
+	"carbite": {
+		id: "carbite",
+		name: "Carbite",
+		spritenum: -227,
+		megaStone: "Carbink-Mega",
+		megaEvolves: "Carbink",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -104,
+		gen: 0,
+		desc: "If holder is a Carbink, this item allows it to Mega Evolve in battle.",
+	},
+	"reunicite": {
+		id: "reunicite",
+		name: "Reunicite",
+		spritenum: -228,
+		megaStone: "Reuniclus-Mega",
+		megaEvolves: "Reuniclus",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -105,
+		gen: 0,
+		desc: "If holder is a Reuniclus, this item allows it to Mega Evolve in battle.",
+	},
+	"milotite": {
+		id: "milotite",
+		name: "Milotite",
+		spritenum: -229,
+		megaStone: "Milotic-Mega",
+		megaEvolves: "Milotic",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -106,
+		gen: 0,
+		desc: "If holder is a Milotic, this item allows it to Mega Evolve in battle.",
+	},
+	"greninjite": {
+		id: "greninjite",
+		name: "Greninjite",
+		spritenum: -230,
+		megaStone: "Greninja-Mega",
+		megaEvolves: "Greninja",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -107,
+		gen: 0,
+		desc: "If holder is a Greninja, this item allows it to Mega Evolve in battle.",
+	},
+	"whiscashite": {
+		id: "whiscashite",
+		name: "Whiscashite",
+		spritenum: -231,
+		megaStone: "Whiscash-Mega",
+		megaEvolves: "Whiscash",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -108,
+		gen: 0,
+		desc: "If holder is a Whiscash, this item allows it to Mega Evolve in battle.",
+	},
+	"cradilite": {
+		id: "cradilite",
+		name: "Cradilite",
+		spritenum: -232,
+		megaStone: "Cradily-Mega",
+		megaEvolves: "Cradily",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -109,
+		gen: 0,
+		desc: "If holder is a Cradily, this item allows it to Mega Evolve in battle.",
+	},
+	"whimsicottite": {
+		id: "whimsicottite",
+		name: "Whimsicottite",
+		spritenum: -233,
+		megaStone: "Whimsicott-Mega",
+		megaEvolves: "Whimsicott",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -110,
+		gen: 0,
+		desc: "If holder is a Whimsicott, this item allows it to Mega Evolve in battle.",
+	},
+	"lilligite": {
+		id: "lilligite",
+		name: "Lilligite",
+		spritenum: -234,
+		megaStone: "Lilligant-Mega",
+		megaEvolves: "Lilligant",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -111,
+		gen: 0,
+		desc: "If holder is a Lilligant, this item allows it to Mega Evolve in battle.",
+	},
+	"shiftrite": {
+		id: "shiftrite",
+		name: "Shiftrite",
+		spritenum: -235,
+		megaStone: "Shiftry-Mega",
+		megaEvolves: "Shiftry",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -111,
+		gen: 0,
+		desc: "If holder is a Shiftry, this item allows it to Mega Evolve in battle.",
+	},
+	"ludicolite": {
+		id: "ludicolite",
+		name: "Ludicolite",
+		spritenum: -236,
+		megaStone: "Ludicolo-Mega",
+		megaEvolves: "Ludicolo",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -112,
+		gen: 0,
+		desc: "If holder is a Ludicolo, this item allows it to Mega Evolve in battle.",
+	},
+	"talonflite": {
+		id: "talonflite",
+		name: "Talonflite",
+		spritenum: -237,
+		megaStone: "Talonflame-Mega",
+		megaEvolves: "Talonflame",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -113,
+		gen: 0,
+		desc: "If holder is a Talonflame, this item allows it to Mega Evolve in battle.",
+	},
+	"donphite": {
+		id: "donphite",
+		name: "Donphite",
+		spritenum: -238,
+		megaStone: "Donphan-Mega",
+		megaEvolves: "Donphan",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -114,
+		gen: 0,
+		desc: "If holder is a Donphan, this item allows it to Mega Evolve in battle.",
+	},
+	"froslite": {
+		id: "froslite",
+		name: "Froslite",
+		spritenum: -239,
+		megaStone: "Froslass-Mega",
+		megaEvolves: "Froslass",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -115,
+		gen: 0,
+		desc: "If holder is a Froslass, this item allows it to Mega Evolve in battle.",
+	},
+	"laprite": {
+		id: "laprite",
+		name: "Laprite",
+		spritenum: -240,
+		megaStone: "Lapras-Mega",
+		megaEvolves: "Lapras",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -116,
+		gen: 0,
+		desc: "If holder is a Lapras, this item allows it to Mega Evolve in battle.",
+	},
+	"weavite": {
+		id: "weavite",
+		name: "Weavite",
+		spritenum: -241,
+		megaStone: "Weavile-Mega",
+		megaEvolves: "Weavile",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -117,
+		gen: 0,
+		desc: "If holder is a Weavile, this item allows it to Mega Evolve in battle.",
+	},
+	"miniorite": {
+		id: "miniorite",
+		name: "Miniorite",
+		spritenum: -242,
+		megaStone: "Minior-Mega",
+		megaEvolves: "Minior",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Minior, this item allows it to Mega Evolve in battle.",
+	},
+	"blissite": {
+		id: "blissite",
+		name: "Blissite",
+		spritenum: -243,
+		megaStone: "Blissey-Mega",
+		megaEvolves: "Blissey",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Blissey, this item allows it to Mega Evolve in battle.",
+	},
+	"mismagite": {
+		id: "mismagite",
+		name: "Mismagite",
+		spritenum: -243,
+		megaStone: "Mismagius-Mega",
+		megaEvolves: "Mismagius",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Mismagius, this item allows it to Mega Evolve in battle.",
+	},
+	"honchkrite": {
+		id: "honchkrite",
+		name: "Honchkrite",
+		spritenum: -243,
+		megaStone: "Honchkrow-Mega",
+		megaEvolves: "Honchkrow",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Honchkrow, this item allows it to Mega Evolve in battle.",
+	},
+	"lunite": {
+		id: "lunite",
+		name: "Lunite",
+		spritenum: -243,
+		megaStone: "Lunatone-Mega",
+		megaEvolves: "Lunatone",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Lunatone, this item allows it to Mega Evolve in battle.",
+	},
+	"solite": {
+		id: "solite",
+		name: "Solite",
+		spritenum: -243,
+		megaStone: "Solrock-Mega",
+		megaEvolves: "Solrock",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Solrock, this item allows it to Mega Evolve in battle.",
+	},
+	"weezite": {
+		id: "weezite",
+		name: "Weezite",
+		spritenum: -243,
+		megaStone: "Weezing-Mega",
+		megaEvolves: "Weezing",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Weezing, this item allows it to Mega Evolve in battle.",
+	},
+	"forretrite": {
+		id: "forretrite",
+		name: "Forretrite",
+		spritenum: -243,
+		megaStone: "Forretress-Mega",
+		megaEvolves: "Forretress",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Forretress, this item allows it to Mega Evolve in battle.",
+	},
+	"heatrite": {
+		id: "heatrite",
+		name: "Heatrite",
+		spritenum: -243,
+		megaStone: "Heatran-Mega",
+		megaEvolves: "Heatran",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Heatran, this item allows it to Mega Evolve in battle.",
+	},
+	"bishite": {
+		id: "bishite",
+		name: "Bishite",
+		spritenum: -243,
+		megaStone: "Bisharp-Mega",
+		megaEvolves: "Bisharp",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Bisharp, this item allows it to Mega Evolve in battle.",
+	},
+	"scraftite": {
+		id: "scraftite",
+		name: "Scraftite",
+		spritenum: -243,
+		megaStone: "Scrafty-Mega",
+		megaEvolves: "Scrafty",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Scrafty, this item allows it to Mega Evolve in battle.",
+	},
+	"mienshite": {
+		id: "mienshite",
+		name: "Mienshite",
+		spritenum: -243,
+		megaStone: "Mienshao-Mega",
+		megaEvolves: "Mienshao",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Mienshao, this item allows it to Mega Evolve in battle.",
+	},
+	"florgite": {
+		id: "florgite",
+		name: "Florgite",
+		spritenum: -243,
+		megaStone: "Florges-Mega",
+		megaEvolves: "Florges",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Florges, this item allows it to Mega Evolve in battle.",
+	},
+	"slowkingite": {
+		id: "slowkingite",
+		name: "Slowkingite",
+		spritenum: -243,
+		megaStone: "Slowking-Mega",
+		megaEvolves: "Slowking",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Slowking, this item allows it to Mega Evolve in battle.",
+	},
+	"slakingite": {
+		id: "slakingite",
+		name: "Slakingite",
+		spritenum: -243,
+		megaStone: "Slaking-Mega",
+		megaEvolves: "Slaking",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Slaking, this item allows it to Mega Evolve in battle.",
+	},
+	"eelektrite": {
+		id: "eelektrite",
+		name: "Eelektrite",
+		spritenum: -243,
+		megaStone: "Eelektross-Mega",
+		megaEvolves: "Eelektross",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Eelektross, this item allows it to Mega Evolve in battle.",
+	},
+	"regigigite": {
+		id: "regigigite",
+		name: "Regigigite",
+		spritenum: -243,
+		megaStone: "Regigigas-Mega",
+		megaEvolves: "Regigigas",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Regigigas, this item allows it to Mega Evolve in battle.",
+	},
+	"timegear": {
+		id: "timegear",
+		name: "Time Gear",
+		spritenum: -390,
+		onSwitchIn: function (pokemon) {
+			if (pokemon.isActive && pokemon.baseTemplate.species === 'Dialga') {
+				this.insertQueue({pokemon: pokemon, choice: 'runPrimal'});
+			}
+		},
+		onPrimal: function (pokemon) {
+			let template = this.getTemplate('Dialga-Primal');
+			pokemon.formeChange(template);
+			pokemon.baseTemplate = template;
+			pokemon.details = template.species + (pokemon.level === 100 ? '' : ', L' + pokemon.level) + (pokemon.gender === '' ? '' : ', ' + pokemon.gender) + (pokemon.set.shiny ? ', shiny' : '');
+			if (pokemon.illusion) {
+				pokemon.ability = ''; // Don't allow Illusion to wear off
+				this.add('-primal', pokemon.illusion);
+			} else {
+				this.add('detailschange', pokemon, pokemon.details);
+				this.add('-primal', pokemon);
+			}
+			pokemon.setAbility(template.abilities['0']);
+			pokemon.baseAbility = pokemon.ability;
+		},
+		onTakeItem: function (item, source) {
+			if (source.baseTemplate.baseSpecies === 'Dialga') return false;
+			return true;
+		},
+		num: -534,
+		gen: 0,
+		desc: "If holder is a Dialga, this item triggers its Primal Reversion in battle.",
+	},
+	"gliscorite": {
+		id: "gliscorite",
+		name: "Gliscorite",
+		spritenum: -243,
+		megaStone: "Gliscor-Mega",
+		megaEvolves: "Gliscor",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Gliscor, this item allows it to Mega Evolve in battle.",
+	},
+	"torterrite": {
+		id: "torterrite",
+		name: "Torterrite",
+		spritenum: -243,
+		megaStone: "Torterra-Mega",
+		megaEvolves: "Torterra",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Torterra, this item allows it to Mega Evolve in battle.",
+	},
+	"kabutite": {
+		id: "kabutite",
+		name: "Kabutite",
+		spritenum: -243,
+		megaStone: "Kabutops-Mega",
+		megaEvolves: "Kabutops",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Kabutops, this item allows it to Mega Evolve in battle.",
+	},
+	"omastite": {
+		id: "omastite",
+		name: "Omastite",
+		spritenum: -243,
+		megaStone: "Omastar-Mega",
+		megaEvolves: "Omastar",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Omastar, this item allows it to Mega Evolve in battle.",
+	},
+	"luminite": {
+		id: "luminite",
+		name: "Luminite",
+		spritenum: -243,
+		megaStone: "Lumineon-Mega",
+		megaEvolves: "Lumineon",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Lumineon, this item allows it to Mega Evolve in battle.",
+	},
+	"volcanionite": {
+		id: "volcanionite",
+		name: "Volcanionite",
+		spritenum: -243,
+		megaStone: "Volcanion-Mega",
+		megaEvolves: "Volcanion",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Volcanion, this item allows it to Mega Evolve in battle.",
+	},
+	"pachite": {
+		id: "pachite",
+		name: "Pachite",
+		spritenum: -243,
+		megaStone: "Pachirisu-Mega",
+		megaEvolves: "Pachirisu",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Pachirisu, this item allows it to Mega Evolve in battle.",
+	},
+	"zangoosite": {
+		id: "zangoosite",
+		name: "Zangoosite",
+		spritenum: -243,
+		megaStone: "Zangoose-Mega",
+		megaEvolves: "Zangoose",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Zangoose, this item allows it to Mega Evolve in battle.",
+	},
+	"chesnaughtite": {
+		id: "chesnaughtite",
+		name: "Chesnaughtite",
+		spritenum: -243,
+		megaStone: "Chesnaught-Mega",
+		megaEvolves: "Chesnaught",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Chesnaught, this item allows it to Mega Evolve in battle.",
+	},
+	"golduckite": {
+		id: "golduckite",
+		name: "Golduckite",
+		spritenum: -243,
+		megaStone: "Golduck-Mega",
+		megaEvolves: "Golduck",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Golduck, this item allows it to Mega Evolve in battle.",
+	},
+	"chandelite": {
+		id: "chandelite",
+		name: "Chandelite",
+		spritenum: -243,
+		megaStone: "Chandelure-Mega",
+		megaEvolves: "Chandelure",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Chandelure, this item allows it to Mega Evolve in battle.",
+	},
+	"delinite": {
+		id: "delinite",
+		name: "Delinite",
+		spritenum: -243,
+		megaStone: "Delibird-Mega",
+		megaEvolves: "Delibird",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 6,
+		desc: "If holder is a Delibird, this item allows it to Mega Evolve in battle.",
+	},
+	"grumpigite": {
+		id: "grumpigite",
+		name: "Grumpigite",
+		spritenum: -243,
+		megaStone: "Grumpig-Mega",
+		megaEvolves: "Grumpig",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Grumpig, this item allows it to Mega Evolve in battle.",
+	},
+	"zoruite": {
+		id: "zoruite",
+		name: "Zoruite",
+		spritenum: -243,
+		megaStone: "Zoroark-Mega",
+		megaEvolves: "Zoroark",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Zoroark, this item allows it to Mega Evolve in battle.",
+	},
+	"tangrowthite": {
+		id: "tangrowthite",
+		name: "Tangrowthite",
+		spritenum: -243,
+		megaStone: "Tangrowth-Mega",
+		megaEvolves: "Tangrowth",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Tangrowth, this item allows it to Mega Evolve in battle.",
+	},
+	"magearnite": {
+		id: "magearnite",
+		name: "Magearnite",
+		spritenum: -243,
+		megaStone: "Magearna-Mega",
+		megaEvolves: "Magearna",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -118,
+		gen: 0,
+		desc: "If holder is a Magearna, this item allows it to Mega Evolve in battle.",
+	},
+	"pangorite": {
+		id: "pangorite",
+		name: "Pangorite",
+		spritenum: 243,
+		megaStone: "Pangoro-Mega",
+		megaEvolves: "Pangoro",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -123,
+		gen: 0,
+		desc: "If holder is a Pangoro, this item allows it to Mega Evolve in battle.",
+	},
+	"klefkite": {
+		id: "klefkite",
+		name: "Klefkite",
+		spritenum: 243,
+		megaStone: "Klefki-Mega",
+		megaEvolves: "Klefki",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -122,
+		gen: 0,
+		desc: "If holder is a Klefki, this item allows it to Mega Evolve in battle.",
+	},
+	"darmanite": {
+		id: "darmanite",
+		name: "Darmanite",
+		spritenum: 243,
+		megaStone: "Darmanitan-Mega",
+		megaEvolves: "Darmanitan",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Darmanitan, this item allows it to Mega Evolve in battle.",
+	},
+	"hydreigonite":{
+		id: "hydreigonite",
+		name: "Hydreigonite",
+		spritenum: -397,
+		megaStone: "Hydreigon-Mega",
+		megaEvolves: "Hydreigon",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -120,
+		gen: 0,
+		desc: "If holder is a Hydreigon, this item allows it to Mega Evolve in battle.",
+	},
+	"kingdrite": {
+		id: "kingdrite",
+		name: "Kingdrite",
+		spritenum: -399,
+		megaStone: "Kingdra-Mega",
+		megaEvolves: "Kingdra",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Kingdra, this item allows it to Mega Evolve in battle.",
+	},
+	"dragalgite": {
+		id: "dragalgite",
+		name: "Dragalgite",
+		spritenum: -400,
+		megaStone: "Dragalge-Mega",
+		megaEvolves: "Dragalge",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Dragalge, this item allows it to Mega Evolve in battle.",
+	},
+	"breloomite": {
+		id: "breloomite",
+		name: "Breloomite",
+		spritenum: -401,
+		megaStone: "Breloom-Mega",
+		megaEvolves: "Breloom",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Breloom, this item allows it to Mega Evolve in battle.",
+	},
+	"ursarite": {
+		id: "ursarite",
+		name: "Usarite",
+		spritenum: -401,
+		megaStone: "Usaring-Mega",
+		megaEvolves: "Usaring",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Ursaring, this item allows it to Mega Evolve in battle.",
+	},
+	"bearticite": {
+		id: "bearticite",
+		name: "Bearticite",
+		spritenum: -401,
+		megaStone: "Beartic-Mega",
+		megaEvolves: "Bearic",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Beartic, this item allows it to Mega Evolve in battle.",
+	},
+	"togenite": {
+		id: "togenite",
+		name: "Togenite",
+		spritenum: -400,
+		megaStone: "Togekiss-Mega",
+		megaEvolves: "Togekiss",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 6,
+		desc: "If holder is a Togekiss, this item allows it to Mega Evolve in battle.",
+	},
+	"togedemarite": {
+		id: "togedemarite",
+		name: "Togedemarite",
+		spritenum: -400,
+		megaStone: "Togedemaru-Mega",
+		megaEvolves: "Togedemaru",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 6,
+		desc: "If holder is a Togedemaru, this item allows it to Mega Evolve in battle.",
+	},
+	"bewearite": {
+		id: "bewearite",
+		name: "Bewearite",
+		spritenum: -400,
+		megaStone: "Bewear-Mega",
+		megaEvolves: "Bewear",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Bewear, this item allows it to Mega Evolve in battle.",
+	},
+	"frostorb": {
+		id: "frostorb",
+		name: "Frost Orb",
+		spritenum: -251,
+		fling: {
+			basePower: 30,
+			status: 'frz',
+		},
+		onResidualOrder: 26,
+		onResidualSubOrder: 2,
+		onResidual: function (pokemon) {
+			pokemon.trySetStatus('frz');
+		},
+		num: -273,
+		gen: 0,
+		desc: "At the end of every turn, this item attempts to freeze the holder.",
+	},
+	"drowseorb": {
+		id: "drowseorb",
+		name: "Drowse Orb",
+		spritenum: -251,
+		fling: {
+			basePower: 30,
+			status: 'slp',
+		},
+		onResidualOrder: 26,
+		onResidualSubOrder: 2,
+		onResidual: function (pokemon) {
+			pokemon.trySetStatus('slp');
+		},
+		num: -273,
+		gen: 0,
+		desc: "At the end of every turn, this item attempts to put the holder to sleep.",
+	},
+	"girafarigite": {
+		id: "girafarigite",
+		name: "Girafarigite",
+		spritenum: -400,
+		megaStone: "Girafarig-Mega",
+		megaEvolves: "Girafarig",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Girafarig, this item allows it to Mega Evolve in battle.",
+	},
+	"hawluchite": {
+		id: "hawluchite",
+		name: "Hawluchite",
+		spritenum: -400,
+		megaStone: "Hawlucha-Mega",
+		megaEvolves: "Hawlucha",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Hawlucha, this item allows it to Mega Evolve in battle.",
+	},
+	"castformite": {
+		id: "castformite",
+		name: "Castformite",
+		spritenum: -400,
+		megaStone: "Castform-Mega",
+		megaEvolves: "Castform",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Castform, this item allows it to Mega Evolve in battle.",
+	},
+	"unownite": {
+		id: "unownite",
+		name: "Unownite",
+		spritenum: -400,
+		megaStone: "Unown-Mega",
+		megaEvolves: "Unown",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Unown, this item allows it to Mega Evolve in battle.",
+	},
+	"nidokingite": {
+		id: "nidokingite",
+		name: "Nidokingite",
+		spritenum: -400,
+		megaStone: "Nidoking-Mega",
+		megaEvolves: "Nidoking",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Nidoking, this item allows it to Mega Evolve in battle.",
+	},
+	"kecleonite": {
+		id: "kecleonite",
+		name: "Kecleonite",
+		spritenum: -400,
+		megaStone: "Kecleon-Mega",
+		megaEvolves: "Kecleon",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Kecleon, this item allows it to Mega Evolve in battle.",
+	},
+	"farfetchite": {
+		id: "farfetchite",
+		name: "Farfetchite",
+		spritenum: -400,
+		megaStone: "Farfetch'd-Mega",
+		megaEvolves: "Farfetch'd",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Farfetch'd, this item allows it to Mega Evolve in battle.",
+	},
+	"victinite": {
+		id: "victinite",
+		name: "Victinite",
+		spritenum: -400,
+		megaStone: "Victini-Mega",
+		megaEvolves: "Victini",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Victini, this item allows it to Mega Evolve in battle.",
+	},
+	"darkrite": {
+		id: "darkrite",
+		name: "Darkrite",
+		spritenum: -400,
+		megaStone: "Darkrai-Mega",
+		megaEvolves: "Darkrai",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Darkrai, this item allows it to Mega Evolve in battle.",
+	},
+	"cresselite": {
+		id: "cresselite",
+		name: "Cresselite",
+		spritenum: -400,
+		megaStone: "Cresselia-Mega",
+		megaEvolves: "Cresselia",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -119,
+		gen: 0,
+		desc: "If holder is a Cresselia, this item allows it to Mega Evolve in battle.",
+	},
+	"noctowlite": {
+		id: "noctowlite",
+		name: "Noctowlite",
+		spritenum: 624,
+		megaStone: "Noctowl-Mega",
+		megaEvolves: "Noctowl",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Noctowl, this item allows it to Mega Evolve in battle.",
+	},
+	"taurosite": {
+		id: "taurosite",
+		name: "Taurosite",
+		spritenum: 624,
+		megaStone: "Tauros-Mega",
+		megaEvolves: "Tauros",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Tauros, this item allows it to Mega Evolve in battle.",
+	},
+	"ambipomite": {
+		id: "ambipomite",
+		name: "Ambipomite",
+		spritenum: 624,
+		megaStone: "Ambipom-Mega",
+		megaEvolves: "Ambipom",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Ambipom, this item allows it to Mega Evolve in battle.",
+	},
+	"meganiumite": {
+		id: "meganiumite",
+		name: "Meganiumite",
+		spritenum: 624,
+		megaStone: "Meganium-Mega",
+		megaEvolves: "Meganium",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Meganium, this item allows it to Mega Evolve in battle.",
+	},
+	"typhlosite": {
+		id: "typhlosite",
+		name: "Typhlosite",
+		spritenum: 624,
+		megaStone: "Typhlosion-Mega",
+		megaEvolves: "Typhlosion",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Typhlosion, this item allows it to Mega Evolve in battle.",
+	},
+	"feralite": {
+		id: "feralite",
+		name: "Feralite",
+		spritenum: 624,
+		megaStone: "Feraligatr-Mega",
+		megaEvolves: "Feraligatr",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Feraligatr, this item allows it to Mega Evolve in battle.",
+	},
+	"floatzite": {
+		id: "floatzite",
+		name: "Floatzite",
+		spritenum: 624,
+		megaStone: "Floatzel-Mega",
+		megaEvolves: "Floatzel",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Floatzel, this item allows it to Mega Evolve in battle.",
+	},
+	"chatite": {
+		id: "chatite",
+		name: "Chatite",
+		spritenum: 624,
+		megaStone: "Chatot-Mega",
+		megaEvolves: "Chatot",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Chatot, this item allows it to Mega Evolve in battle.",
+	},
+	"arcanite": {
+		id: "arcanite",
+		name: "Arcanite",
+		spritenum: 624,
+		megaStone: "Arcanine-Mega",
+		megaEvolves: "Arcanine",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: 764,
+		gen: 6,
+		desc: "If holder is a Arcanine, this item allows it to Mega Evolve in battle.",
+	},
+	"hitmonlite": {
+		id: "hitmonlite",
+		name: "Hitmonlite",
+		spritenum: -624,
+		megaStone: "Hitmonlee-Mega",
+		megaEvolves: "Hitmonlee",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Hitmonlee, this item allows it to Mega Evolve in battle.",
+	},
+	"hitmonchite": {
+		id: "hitmonchite",
+		name: "Hitmonchite",
+		spritenum: -624,
+		megaStone: "Hitmonchan-Mega",
+		megaEvolves: "Hitmonchan",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Hitmonchan, this item allows it to Mega Evolve in battle.",
+	},
+	"hitmontite": {
+		id: "hitmontite",
+		name: "Hitmontite",
+		spritenum: -624,
+		megaStone: "Hitmontop-Mega",
+		megaEvolves: "Hitmontop",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Hitmontop, this item allows it to Mega Evolve in battle.",
+	},
+	"primarinite": {
+		id: "primarinite",
+		name: "Primarinite",
+		spritenum: -624,
+		megaStone: "Primarina-Mega",
+		megaEvolves: "Primarina",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Primarina, this item allows it to Mega Evolve in battle.",
+	},
+	"deciduite": {
+		id: "deciduite",
+		name: "Deciduite",
+		spritenum: -624,
+		megaStone: "Decidueye-Mega",
+		megaEvolves: "Decidueye",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Decidueye, this item allows it to Mega Evolve in battle.",
+	},
+	"incinerite": {
+		id: "incinerite",
+		name: "Incinerite",
+		spritenum: -624,
+		megaStone: "Incineroar-Mega",
+		megaEvolves: "Incineroar",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Incineroar, this item allows it to Mega Evolve in battle.",
+	},
+	"heliolite": {
+		id: "heliolite",
+		name: "Heliolite",
+		spritenum: -624,
+		megaStone: "Heliolisk-Mega",
+		megaEvolves: "Heliolisk",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Heliolisk, this item allows it to Mega Evolve in battle.",
+	},
+	"mamoswite": {
+		id: "mamoswite",
+		name: "Mamoswite",
+		spritenum: -624,
+		megaStone: "Mamoswine-Mega",
+		megaEvolves: "Mamoswine",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Mamoswine, this item allows it to Mega Evolve in battle.",
+	},
+	"rapidashite": {
+		id: "rapidashite",
+		name: "Rapidashite",
+		spritenum: -624,
+		megaStone: "Rapidash-Mega",
+		megaEvolves: "Rapidash",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Rapidash, this item allows it to Mega Evolve in battle.",
+	},
+	"wigglytuffite": {
+		id: "wigglytuffite",
+		name: "Wigglytuffite",
+		spritenum: -624,
+		megaStone: "Wigglytuff-Mega",
+		megaEvolves: "Wigglytuff",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Wigglytuff, this item allows it to Mega Evolve in battle.",
+	},
+	"liepardite": {
+		id: "liepardite",
+		name: "Liepardite",
+		spritenum: -624,
+		megaStone: "Liepard-Mega",
+		megaEvolves: "Liepard",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Liepard, this item allows it to Mega Evolve in battle.",
+	},
+	"raichite": {
+		id: "raichite",
+		name: "Raichite",
+		spritenum: -624,
+		megaStone: "Raichu-Mega",
+		megaEvolves: "Raichu",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Raichu, this item allows it to Mega Evolve in battle.",
+	},
+	"wailordite": {
+		id: "wailordite",
+		name: "Wailordite",
+		spritenum: -624,
+		megaStone: "Wailord-Mega",
+		megaEvolves: "Wailord",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Wailord, this item allows it to Mega Evolve in battle.",
+	},
+	"diggersbite": {
+		id: "diggersbite",
+		name: "Diggersbite",
+		spritenum: -624,
+		megaStone: "Diggersby-Mega",
+		megaEvolves: "Diggersby",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Diggersby, this item allows it to Mega Evolve in battle.",
+	},
+	"spindite": {
+		id: "spindite",
+		name: "Spindite",
+		spritenum: -624,
+		megaStone: "Spinda-Mega",
+		megaEvolves: "Spinda",
+		onTakeItem: function (item, source) {
+			if (item.megaEvolves === source.baseTemplate.baseSpecies) return false;
+			return true;
+		},
+		num: -764,
+		gen: 0,
+		desc: "If holder is a Spinda, this item allows it to Mega Evolve in battle.",
 	},
 };

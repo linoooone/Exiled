@@ -12,6 +12,7 @@ const db = require('origindb')('./config/db');
 const MAX_ITEMS = 12;
 
 exports.commands = {
+	'!roomshop': true,
 	roomshop: 'leagueshop',
 	leagueshop: {
 		enable: function (target, room, user) {
@@ -19,7 +20,7 @@ exports.commands = {
 			if (db('roomshop').has(room.id)) return this.errorReply('Roomshop is already enabled here.');
 
 			db('roomshop')
-			.set(room.id, {});
+				.set(room.id, {});
 
 			this.sendReply('Roomshop has been enabled here.');
 		},
@@ -42,7 +43,7 @@ exports.commands = {
 				if (!bank) return this.parse('/help roomshop');
 
 				db('roomshop')
-				.set([room.id, 'Bank'], bank);
+					.set([room.id, 'Bank'], bank);
 
 				this.sendReply(bank + ' has been made the bank for ' + room.id + '\'s shop.');
 			},
@@ -56,7 +57,7 @@ exports.commands = {
 				if (!bank) return this.parse('/help roomshop');
 
 				db('roomshop')
-				.set([room.id, 'Bank'], bank);
+					.set([room.id, 'Bank'], bank);
 
 				this.sendReply(bank + ' has been made the bank for ' + room.id + '\'s shop.');
 			},
@@ -91,10 +92,10 @@ exports.commands = {
 			if (keys.length >= MAX_ITEMS) return this.errorReply('roomshop has reached max number of items.');
 
 			db('roomshop')
-			.set([room.id, itemID], {})
-			.set([room.id, itemID, 'Item Name'], itemName)
-			.set([room.id, itemID, 'Description'], description)
-			.set([room.id, itemID, 'Price'], Number(price));
+				.set([room.id, itemID], {})
+				.set([room.id, itemID, 'Item Name'], itemName)
+				.set([room.id, itemID, 'Description'], description)
+				.set([room.id, itemID, 'Price'], Number(price));
 
 			this.sendReply(itemName + ' added to the roomshop.');
 		},
@@ -146,7 +147,7 @@ exports.commands = {
 			  this.sendReply('You have bought ' + itemID + ' for ' + cost + ' bucks.');
 		},
 		'': function (target, room, user) {
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return;
 			if (!db('roomshop').has(room.id)) return this.errorReply('Roomshop is not enabled here.');
 
 			let keys = Object.keys(db('roomshop').object()[room.id]);

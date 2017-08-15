@@ -7,11 +7,13 @@ bite: Power is multiplied by 1.5 when used by a Pokemon with the Ability Strong 
 bullet: Has no effect on Pokemon with the Ability Bulletproof.
 charge: The user is unable to make a move between turns.
 contact: Makes contact.
+dance: When used by a Pokemon, other Pokemon with the Ability Dancer can attempt to execute the same move.
 defrost: Thaws the user if executed successfully while the user is frozen.
 distance: Can target a Pokemon positioned anywhere in a Triple Battle.
 gravity: Prevented from being executed or selected during Gravity's effect.
 heal: Prevented from being executed or selected during Heal Block's effect.
 mirror: Can be copied by Mirror Move.
+mystery: Unknown effect.
 nonsky: Prevented from being executed or selected in a Sky Battle.
 powder: Has no effect on Grass-type Pokemon, Pokemon with the Ability Overcoat, and Pokemon holding Safety Goggles.
 protect: Blocked by Detect, Protect, Spiky Shield, and if not a Status move, King's Shield.
@@ -847,6 +849,7 @@ exports.BattleMovedex = {
 		desc: "For 5 turns, the user and its party members take 0.5x damage from physical and special attacks, or 0.66x damage if in a Double Battle. Critical hits ignore this protection. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Lasts for 8 turns if the user is holding Light Clay. Fails unless the weather is Hail.",
 		shortDesc: "For 5 turns, damage to allies is halved. Hail only.",
 		id: "auroraveil",
+		isViable: true,
 		name: "Aurora Veil",
 		pp: 20,
 		priority: 0,
@@ -1194,7 +1197,7 @@ exports.BattleMovedex = {
 		pp: 10,
 		priority: 0,
 		flags: {protect: 1},
-		// Move disabling implemented in Battle#nextTurn in battle-engine.js
+		// Move disabling implemented in Battle#nextTurn in sim/battle.js
 		secondary: false,
 		target: "normal",
 		type: "Poison",
@@ -4338,7 +4341,7 @@ exports.BattleMovedex = {
 			onStart: function (pokemon) {
 				this.add('-start', pokemon, 'Embargo');
 			},
-			// Item suppression implemented in BattlePokemon.ignoringItem() within battle-engine.js
+			// Item suppression implemented in Pokemon.ignoringItem() within sim/pokemon.js
 			onResidualOrder: 18,
 			onEnd: function (pokemon) {
 				this.add('-end', pokemon, 'Embargo');
@@ -4595,7 +4598,7 @@ exports.BattleMovedex = {
 		secondary: false,
 		target: "allAdjacent",
 		type: "Normal",
-		zMovePower: 200,
+		zMovePower: 300,
 		contestType: "Beautiful",
 	},
 	"extrasensory": {
@@ -4915,6 +4918,32 @@ exports.BattleMovedex = {
 		},
 		target: "normal",
 		type: "Fire",
+		zMovePower: 160,
+		contestType: "Beautiful",
+	},
+	"aquaticdance": { //Signature for Volcarona-Alola
+		num: 552,
+		accuracy: 100,
+		basePower: 80,
+		category: "Special",
+		desc: "Has a 50% chance to raise the user's Special Attack by 1 stage.",
+		shortDesc: "50% chance to raise the user's Sp. Atk by 1.",
+		id: "aquaticdance",
+		isViable: true,
+		name: "Aquatic Dance",
+		pp: 10,
+		priority: 0,
+		flags: {protect: 1, mirror: 1, dance: 1},
+		secondary: {
+			chance: 50,
+			self: {
+				boosts: {
+					spa: 1,
+				},
+			},
+		},
+		target: "normal",
+		type: "Water",
 		zMovePower: 160,
 		contestType: "Beautiful",
 	},
@@ -5618,6 +5647,27 @@ exports.BattleMovedex = {
 		zMovePower: 170,
 		contestType: "Tough",
 	},
+	"tundrasweep": { //signature move for Lanturn-Alola
+		num: -6000,
+		accuracy: 100,
+		basePower: 80,
+		category: "Special",
+		desc: "This move combines Water and Ground in its type effectiveness against the target. Damage doubles and no accuracy check is done if the target has used Minimize while active.",
+		shortDesc: "Adds Water and Ground to type effectiveness.",
+		id: "tundrasweep",
+		name: "Tundra Sweep",
+		pp: 10,
+		flags: {contact: 1, protect: 1, mirror: 1, distance: 1},
+		onEffectiveness: function (typeMod, type, move) {
+			return typeMod + this.getEffectiveness('Water', 'Ground', type);
+		},
+		priority: 0,
+		secondary: false,
+		target: "allAdjacent",
+		type: "Ice",
+		zMovePower: 165,
+		contestType: "Beautiful",
+	},
 	"focusblast": {
 		num: 411,
 		accuracy: 70,
@@ -6171,7 +6221,7 @@ exports.BattleMovedex = {
 			}
 		},
 		effect: {
-			// Ability suppression implemented in BattlePokemon.ignoringAbility() within battle-engine.js
+			// Ability suppression implemented in Pokemon.ignoringAbility() within sim/pokemon.js
 			onStart: function (pokemon) {
 				this.add('-endability', pokemon);
 				this.singleEvent('End', this.getAbility(pokemon.ability), pokemon.abilityData, pokemon, pokemon, 'gastroacid');
@@ -6507,7 +6557,7 @@ exports.BattleMovedex = {
 	},
 	"grasswhistle": {
 		num: 320,
-		accuracy: 55,
+		accuracy: 80,
 		basePower: 0,
 		category: "Status",
 		desc: "Causes the target to fall asleep.",
@@ -7388,6 +7438,15 @@ exports.BattleMovedex = {
 		basePowerCallback: function (pokemon, target) {
 			let targetWeight = target.getWeight();
 			let pokemonWeight = pokemon.getWeight();
+			if (pokemonWeight > targetWeight * 8) {
+				return 180;
+			}
+			if (pokemonWeight > targetWeight * 7) {
+				return 160;
+			}
+			if (pokemonWeight > targetWeight * 6) {
+				return 140;
+			}
 			if (pokemonWeight > targetWeight * 5) {
 				return 120;
 			}
@@ -7497,6 +7556,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerbug": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7513,6 +7573,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerdark": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7529,6 +7590,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerdragon": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7545,6 +7607,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerelectric": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7562,6 +7625,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerfighting": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7579,6 +7643,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerfire": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7596,6 +7661,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerflying": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7612,6 +7678,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerghost": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7628,6 +7695,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowergrass": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7645,6 +7713,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerground": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7661,6 +7730,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerice": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7678,6 +7748,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerpoison": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7694,6 +7765,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerpsychic": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7710,6 +7782,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerrock": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7726,6 +7799,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowersteel": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7742,6 +7816,7 @@ exports.BattleMovedex = {
 		contestType: "Clever",
 	},
 	"hiddenpowerwater": {
+		num: 237,
 		accuracy: 100,
 		basePower: 60,
 		category: "Special",
@@ -7755,6 +7830,22 @@ exports.BattleMovedex = {
 		secondary: false,
 		target: "normal",
 		type: "Water",
+		contestType: "Clever",
+	},
+	"hiddenpowerfairy": {
+		accuracy: 100,
+		basePower: 60,
+		category: "Special",
+		desc: "",
+		shortDesc: "",
+		id: "hiddenpower",
+		name: "Hidden Power Fairy",
+		pp: 15,
+		priority: 0,
+		flags: {protect: 1, mirror: 1},
+		secondary: false,
+		target: "normal",
+		type: "Fairy",
 		contestType: "Clever",
 	},
 	"highhorsepower": {
@@ -8930,6 +9021,9 @@ exports.BattleMovedex = {
 			onModifyCritRatio: function (critRatio) {
 				return 5;
 			},
+			onEnd: function (pokemon) {
+				this.add('-end', pokemon, 'move: Laser Focus', '[silent]');
+			},
 		},
 		secondary: false,
 		target: "self",
@@ -9192,7 +9286,6 @@ exports.BattleMovedex = {
 		pp: 5,
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
-		isUnreleased: true,
 		recoil: [1, 2],
 		secondary: false,
 		target: "normal",
@@ -9606,17 +9699,16 @@ exports.BattleMovedex = {
 		},
 		effect: {
 			duration: 5,
-			/*durationCallback: function (source, effect) {
-				// Persistent isn't updated for BW moves
-				if (source && source.hasAbility('Persistent')) {
+			durationCallback: function (source, effect) {
+				if (source && source.hasAbility('persistent')) {
 					return 7;
 				}
 				return 5;
-			},*/
+			},
 			onStart: function (target, source) {
 				this.add('-fieldstart', 'move: Magic Room', '[of] ' + source);
 			},
-			// Item suppression implemented in BattlePokemon.ignoringItem() within battle-engine.js
+			// Item suppression implemented in Pokemon.ignoringItem() within sim/pokemon.js
 			onResidualOrder: 25,
 			onEnd: function () {
 				this.add('-fieldend', 'move: Magic Room', '[of] ' + this.effectData.source);
@@ -10172,18 +10264,16 @@ exports.BattleMovedex = {
 		pp: 10,
 		priority: 0,
 		flags: {},
-		onHit: function (target) {
+		noMetronome: {afteryou:1, assist:1, belch:1, bestow:1, celebrate:1, chatter:1, copycat:1, counter:1, covet:1, craftyshield:1, destinybond:1, detect:1, diamondstorm:1, dragonascent:1, endure:1, feint:1, focuspunch:1, followme:1, freezeshock:1, happyhour:1, helpinghand:1, holdhands:1, hyperspacefury:1, hyperspacehole:1, iceburn:1, kingsshield:1, lightofruin:1, matblock:1, mefirst:1, metronome:1, mimic:1, mirrorcoat:1, mirrormove:1, naturepower:1, originpulse:1, precipiceblades:1, protect:1, quash:1, quickguard:1, ragepowder:1, relicsong:1, secretsword:1, sketch:1, sleeptalk:1, snarl:1, snatch:1, snore:1, spikyshield:1, steameruption:1, struggle:1, switcheroo:1, technoblast:1, thief:1, thousandarrows:1, thousandwaves:1, transform:1, trick:1, vcreate:1, wideguard:1},
+		onHit: function (target, source, effect) {
 			let moves = [];
 			for (let i in exports.BattleMovedex) {
 				let move = exports.BattleMovedex[i];
 				if (i !== move.id) continue;
 				if (move.isZ || move.isNonstandard) continue;
-				let noMetronome = {
-					afteryou:1, assist:1, belch:1, bestow:1, celebrate:1, chatter:1, copycat:1, counter:1, covet:1, craftyshield:1, destinybond:1, detect:1, diamondstorm:1, dragonascent:1, endure:1, feint:1, focuspunch:1, followme:1, freezeshock:1, happyhour:1, helpinghand:1, holdhands:1, hyperspacefury:1, hyperspacehole:1, iceburn:1, kingsshield:1, lightofruin:1, matblock:1, mefirst:1, metronome:1, mimic:1, mirrorcoat:1, mirrormove:1, naturepower:1, originpulse:1, precipiceblades:1, protect:1, quash:1, quickguard:1, ragepowder:1, relicsong:1, secretsword:1, sketch:1, sleeptalk:1, snarl:1, snatch:1, snore:1, spikyshield:1, steameruption:1, struggle:1, switcheroo:1, technoblast:1, thief:1, thousandarrows:1, thousandwaves:1, transform:1, trick:1, vcreate:1, wideguard:1,
-				};
-				if (!noMetronome[move.id]) {
-					moves.push(move);
-				}
+				if (effect.noMetronome[move.id]) continue;
+				if (this.getMove(i).gen > this.gen) continue;
+				moves.push(move);
 			}
 			let randomMove = '';
 			if (moves.length) {
@@ -10237,7 +10327,7 @@ exports.BattleMovedex = {
 			if (source.transformed || !target.lastMove || disallowedMoves[target.lastMove] || source.moves.indexOf(target.lastMove) >= 0) return false;
 			let moveslot = source.moves.indexOf('mimic');
 			if (moveslot < 0) return false;
-			let move = Tools.getMove(target.lastMove);
+			let move = Dex.getMove(target.lastMove);
 			source.moveset[moveslot] = {
 				move: move.name,
 				id: move.id,
@@ -11486,14 +11576,13 @@ exports.BattleMovedex = {
 		pp: 5,
 		priority: 0,
 		flags: {sound: 1, distance: 1, authentic: 1},
-		onHitField: function (target, source) {
+		onHitField: function (target, source, move) {
 			let result = false;
 			let message = false;
 			for (let i = 0; i < this.sides.length; i++) {
 				for (let j = 0; j < this.sides[i].active.length; j++) {
 					if (this.sides[i].active[j] && this.sides[i].active[j].isActive) {
-						if (this.sides[i].active[j].hasAbility('soundproof')) {
-							this.add('-immune', this.sides[i].active[j], '[msg]', '[from] ability: Soundproof');
+						if (this.runEvent('TryHit', this.sides[i].active[j], source, move) === null) {
 							result = true;
 						} else if (!this.sides[i].active[j].volatiles['perishsong']) {
 							this.sides[i].active[j].addVolatile('perishsong');
@@ -12010,8 +12099,8 @@ exports.BattleMovedex = {
 		accuracy: true,
 		basePower: 0,
 		category: "Status",
-		desc: "The user swaps its Attack and Defense stats; stat stage changes remain on their respective stats. This move can be used again to swap the stats back. If the user uses Baton Pass, the replacement will have its Attack and Defense stats swapped if the effect is active. If the user has its stats recalculated by changing forme while its stats are swapped, this effect is ignored but is still active for the purposes of Baton Pass.",
-		shortDesc: "Switches user's Attack and Defense stats.",
+		desc: "The user swaps its Attack/Special Attack and Defense/Special Defense stats; stat stage changes remain on their respective stats. This move can be used again to swap the stats back. If the user uses Baton Pass, the replacement will have its Attack and Defense stats swapped if the effect is active. If the user has its stats recalculated by changing forme while its stats are swapped, this effect is ignored but is still active for the purposes of Baton Pass.",
+		shortDesc: "Switches user's Attack/Special Attack and Defense/Special Defense stats.",
 		id: "powertrick",
 		name: "Power Trick",
 		pp: 10,
@@ -12022,22 +12111,34 @@ exports.BattleMovedex = {
 			onStart: function (pokemon) {
 				this.add('-start', pokemon, 'Power Trick');
 				let newatk = pokemon.stats.def;
+				let newspa = pokemon.stats.spd;
 				let newdef = pokemon.stats.atk;
+				let newspd = pokemon.stats.spa;
 				pokemon.stats.atk = newatk;
 				pokemon.stats.def = newdef;
+				pokemon.stats.spa = newspa;
+				pokemon.stats.spd = newspd;
 			},
 			onCopy: function (pokemon) {
 				let newatk = pokemon.stats.def;
+				let newspa = pokemon.stats.spd;
 				let newdef = pokemon.stats.atk;
+				let newspd = pokemon.stats.spa;
 				pokemon.stats.atk = newatk;
 				pokemon.stats.def = newdef;
+				pokemon.stats.spa = newspa;
+				pokemon.stats.spd = newspd;
 			},
 			onEnd: function (pokemon) {
 				this.add('-end', pokemon, 'Power Trick');
 				let newatk = pokemon.stats.def;
+				let newspa = pokemon.stats.spd;
 				let newdef = pokemon.stats.atk;
+				let newspd = pokemon.stats.spa;
 				pokemon.stats.atk = newatk;
 				pokemon.stats.def = newdef;
+				pokemon.stats.spa = newspa;
+				pokemon.stats.spd = newspd;
 			},
 			onRestart: function (pokemon) {
 				pokemon.removeVolatile('Power Trick');
@@ -12046,7 +12147,7 @@ exports.BattleMovedex = {
 		secondary: false,
 		target: "self",
 		type: "Psychic",
-		zMoveBoost: {atk: 1},
+		zMoveBoost: {atk: 1, spa: 1},
 		contestType: "Clever",
 	},
 	"powertrip": {
@@ -12121,7 +12222,7 @@ exports.BattleMovedex = {
 		basePower: 120,
 		category: "Physical",
 		desc: "No additional effect.",
-		shortDesc: "No additional effect. Hits adjacent Pokemon.",
+		shortDesc: "No additional effect. Hits adjacent foes.",
 		id: "precipiceblades",
 		isViable: true,
 		name: "Precipice Blades",
@@ -12864,6 +12965,25 @@ exports.BattleMovedex = {
 		zMoveBoost: {spe: 1},
 		contestType: "Beautiful",
 	},
+	"steelbarriers": {
+		num: -800,
+		accuracy: true,
+		basePower: 0,
+		category: "Status",
+		desc: "For 5 turns, the terrain becomes Steel Barriers. The damage of Steel-type attacks is multiplied by 1.5 and the damage of Fairy-type attacks is multiplied by 0.5 during the effect. Lasts for 8 turns if the user is holding Iron Ball. Fails if the current weather is Sunny Day or Steel Barriers.",
+		shortDesc: "For 5 turns, metal barriers powers Steel moves.",
+		id: "steelbarriers",
+		name: "Steel Barriers",
+		pp: 5,
+		priority: 0,
+		flags: {},
+		weather: 'SteelBarrier',
+		secondary: false,
+		target: "all",
+		type: "Steel",
+		zMoveBoost: {def: 1, spd: 1},
+		contestType: "Clever",
+	},
 	"rapidspin": {
 		num: 229,
 		accuracy: 100,
@@ -13247,6 +13367,36 @@ exports.BattleMovedex = {
 		type: "Normal",
 		zMovePower: 175,
 		contestType: "Beautiful",
+	},
+	"colorschemeslash": {
+		num: -686,
+		accuracy: 100,
+		basePower: 120,
+		category: "Physical",
+		desc: "This move's type depends on the user's primary type.",
+		shortDesc: "Type varies based on the user's primary type.",
+		id: "colorschemeslash",
+		isViable: true,
+		name: "Color Scheme Slash",
+		pp: 15,
+		priority: 0,
+		flags: {protect: 1, mirror: 1, dance: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Tri Attack", source);
+			this.add('-anim', source, "Multi Attack", source);
+			this.add('-anim', source, "Dynamic Punch");
+		},
+		onModifyMove: function (move, pokemon) {
+			let type = pokemon.types[0];
+			if (type === "Bird") type = "???";
+			move.type = type;
+		},
+		secondary: false,
+		target: "normal",
+		type: "Normal",
+		zMovePower: 195,
+		contestType: "Cool",
 	},
 	"revenge": {
 		num: 279,
@@ -13642,6 +13792,7 @@ exports.BattleMovedex = {
 		},
 		effect: {
 			duration: 1,
+			onResidualOrder: 20,
 			// implemented in BattlePokemon#getTypes
 		},
 		secondary: false,
@@ -14627,7 +14778,7 @@ exports.BattleMovedex = {
 			if (source.transformed || !target.lastMove || disallowedMoves[target.lastMove] || source.moves.indexOf(target.lastMove) >= 0) return false;
 			let moveslot = source.moves.indexOf('sketch');
 			if (moveslot < 0) return false;
-			let move = Tools.getMove(target.lastMove);
+			let move = Dex.getMove(target.lastMove);
 			let sketchedMove = {
 				move: move.name,
 				id: move.id,
@@ -15303,7 +15454,6 @@ exports.BattleMovedex = {
 		desc: "The target's raised stat stages are stolen from it and applied to the user before dealing damage.",
 		shortDesc: "Steals target's boosts before dealing damage.",
 		id: "spectralthief",
-		isUnreleased: true,
 		isViable: true,
 		name: "Spectral Thief",
 		pp: 10,
@@ -15568,6 +15718,38 @@ exports.BattleMovedex = {
 		secondary: false,
 		target: "normal",
 		type: "Ghost",
+		contestType: "Cool",
+	},
+	"epicsplash": {
+		num: -699,
+		accuracy: true,
+		basePower: 225,
+		category: "Physical",
+		desc: "Speed, Attack, and Special Attack are max.",
+		shortDesc: "Speed, Attack, and Special Attack are max.",
+		id: "epicsplash",
+		name: "Epic Splash",
+		pp: 1,
+		priority: 0,
+		flags: {contact: 1},
+		onPrepareHit: function (target, source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Outrage", target);
+			this.add('-anim', source, "Splash", target);
+		},
+		isZ: "magikarniumz",
+		secondary: {
+			chance: 100,
+			self: {
+				boosts: {
+					atk: 6,
+					spa: 6,
+					spe: 6,
+				},
+			},
+		},
+		target: "normal",
+		type: "Water",
 		contestType: "Cool",
 	},
 	"spacialrend": {
@@ -17751,7 +17933,7 @@ exports.BattleMovedex = {
 			onStart: function (target, source) {
 				this.add('-fieldstart', 'move: Trick Room', '[of] ' + source);
 			},
-			// Speed modification is changed in BattlePokemon.getDecisionSpeed() in battle-engine.js
+			// Speed modification is changed in Pokemon.getDecisionSpeed() in sim/pokemon.js
 			onResidualOrder: 23,
 			onEnd: function () {
 				this.add('-fieldend', 'move: Trick Room');
@@ -18433,7 +18615,7 @@ exports.BattleMovedex = {
 		accuracy: 100,
 		basePower: 50,
 		basePowerCallback: function (pokemon, target, move) {
-			if (this.weather) return move.basePower * 2;
+			if (this.weather) return move.basePower * 3;
 			return move.basePower;
 		},
 		category: "Special",
@@ -18459,6 +18641,9 @@ exports.BattleMovedex = {
 				break;
 			case 'hail':
 				move.type = 'Ice';
+				break;
+			case 'deltastream':
+				move.type = 'Flying';
 				break;
 			}
 		},
@@ -18689,10 +18874,16 @@ exports.BattleMovedex = {
 		},
 		effect: {
 			duration: 5,
-			onStart: function (side, source) {
-				this.add('-fieldstart', 'move: WonderRoom', '[of] ' + source);
+			durationCallback: function (source, effect) {
+				if (source && source.hasAbility('persistent')) {
+					return 7;
+				}
+				return 5;
 			},
-			// Swapping defenses implemented in battle-engine.js:BattlePokemon#calculateStat and BattlePokemon#getStat
+			onStart: function (side, source) {
+				this.add('-fieldstart', 'move: Wonder Room', '[of] ' + source);
+			},
+			// Swapping defenses implemented in sim/pokemon.js:Pokemon#calculateStat and Pokemon#getStat
 			onResidualOrder: 24,
 			onEnd: function () {
 				this.add('-fieldend', 'move: Wonder Room');
@@ -18992,7 +19183,7 @@ exports.BattleMovedex = {
 		accuracy: true,
 		basePower: 120,
 		category: "Physical",
-		desc: "Has a 100% chance to confuse the target and lower its Defense and Special Attack by 1 stage. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down. If this move is successful, the weather changes to rain unless it is already in effect, and the user gains the effects of Aqua Ring and Magic Coat.",
+		desc: "Has a 100% chance to confuse the target and lower its Defense and Special Attack by 1 stage. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down. The user steals the foe's boosts. If this move is successful, the weather changes to rain unless it is already in effect, and the user gains the effects of Aqua Ring and Magic Coat.",
 		shortDesc: "Does many things turn 1. Can't move turn 2.",
 		id: "magikarpsrevenge",
 		isNonstandard: true,
@@ -19026,6 +19217,244 @@ exports.BattleMovedex = {
 		},
 		target: "normal",
 		type: "Water",
+		zMovePower: 190,
 		contestType: "Cute",
+	},
+	"spiralingtoxins": {
+		num: -92,
+		accuracy: 100,
+		basePower: 0,
+		category: "Status",
+		desc: "Badly poisons all Pokemon. Only Steel and Poison types don't get affected by this move.",
+		shortDesc: "Badly poisons all Pokemon.",
+		id: "spiralingtoxins",
+		isViable: true,
+		name: "Spiraling Toxins",
+		pp: 10,
+		priority: 0,
+		flags: {protect: 1, mirror: 1, distance: 1},
+		// No Guard-like effect for Poison-type users implemented in BattleScripts#tryMoveHit
+		status: 'tox',
+		secondary: false,
+		target: "all",
+		type: "Poison",
+		zMoveBoost: {def: 3, spd: 3},
+		contestType: "Clever",
+	},
+	"oblivionbanisher": {
+		num: -246,
+		accuracy: 100,
+		basePower: 120,
+		category: "Special",
+		desc: "Has a 100% chance to raise the user's Attack, Defense, Special Attack, Special Defense, and Speed by 1 stage.",
+		shortDesc: "100% chance to raise all stats by 1 (not acc/eva).",
+		id: "oblivionbanisher",
+		isViable: true,
+		name: "Oblivion Banisher",
+		pp: 5,
+		priority: 0,
+		flags: {protect: 1, mirror: 1, recharge: 5},
+		onPrepareHit: function (target, source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Agility", source);
+			this.add('-anim', source, "Dark Void", target);
+			this.add('-anim', source, "Spectral Thief", target);
+		},
+		secondary: {
+			chance: 100,
+			self: {
+				volatileStatus: 'mustrecharge',
+				boosts: {
+					atk: 1,
+					def: 1,
+					spa: 1,
+					spd: 1,
+					spe: 1,
+				},
+			},
+		},
+		target: "normal",
+		type: "Ghost",
+		zMovePower: 200,
+		contestType: "Tough",
+	},
+	"wishfulstrike": {
+		num: -100,
+		accuracy: 100,
+		basePower: 70,
+		category: "Physical",
+		desc: "Heals 25% of the user's max health.",
+		shortDesc: "Heals 1/4 of max HP. 40% sleep chance.",
+		id: "wishfulstrike",
+		name: "Wishful Strike",
+		pp: 5,
+		priority: 0,
+		flags: {protect: 1, mirror: 1},
+		self: {
+			heal: [1, 4],
+		},
+		onPrepareHit: function (target, source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Wish", source);
+			this.add('-anim', source, "Meteor Mash", target);
+		},
+		secondary: {
+			chance: 40,
+			status: 'slp',
+		},
+		target: "normal",
+		type: "Fairy",
+		zMovePower: 120,
+		contestType: "Cool",
+	},
+	"minigeomancy": {
+		num: -601,
+		accuracy: true,
+		basePower: 0,
+		category: "Status",
+		desc: "Raises the user's Special Attack, Special Defense, and Defense by 2 stages. This attack charges on the first turn and executes on the second. If the user is holding a Power Herb, the move completes in one turn.",
+		shortDesc: "Charges, then raises SpA, SpD, Def by 2 turn 2.",
+		id: "minigeomancy",
+		isViable: true,
+		name: "Mini Geomancy",
+		pp: 10,
+		priority: 0,
+		flags: {charge: 1, nonsky: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Geomancy", source);
+		},
+		onTry: function (attacker, defender, move) {
+			if (attacker.removeVolatile(move.id)) {
+				return;
+			}
+			this.add('-prepare', attacker, move.name, defender);
+			if (!this.runEvent('ChargeMove', attacker, defender, move)) {
+				this.add('-anim', attacker, move.name, defender);
+				attacker.removeVolatile(move.id);
+				return;
+			}
+			attacker.addVolatile('twoturnmove', defender);
+			return null;
+		},
+		boosts: {
+			spa: 2,
+			spd: 2,
+			def: 2,
+		},
+		secondary: false,
+		target: "self",
+		type: "Fairy",
+		zMoveBoost: {atk: 1, def: 1, spa: 1, spd: 1, spe: 1},
+		contestType: "Beautiful",
+	},
+	"quickcombustion": {
+		num: -602,
+		accuracy: 100,
+		basePower: 40,
+		category: "Special",
+		shortDesc: "+1 Priority. 20% chance to burn.",
+		id: "quickcombustion",
+		isViable: true,
+		name: "Quick Combustion",
+		pp: 20,
+		priority: 1,
+		flags: {protect: 1, mirror: 1},
+		secondary: {
+			chance: 20,
+			status: 'brn',
+		},
+		target: "normal",
+		type: "Fire",
+		zMovePower: 100,
+		contestType: "Clever",
+	},
+	"lockdown": {
+		num: -603,
+		accuracy: 100,
+		basePower: 0,
+		category: "Status",
+		shortDesc: "Target is trapped. Raises Def and Spd by 1.",
+		id: "lockdown",
+		isViable: true,
+		name: "Lockdown",
+		pp: 10,
+		priority: 0,
+		flags: {protect: 1, reflectable: 1, mirror: 1, authentic: 1},
+		onHit: function (target, source, move) {
+			this.add("-message", "The user prepared themselves and trapped the target!");
+			if (!target.addVolatile('trapped', source, move, 'trapper')) {
+				this.add('-fail', target);
+			}
+		},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Earthquake", source);
+			this.add('-anim', source, "Bind", source);
+		},
+		secondary: {
+			chance: 100,
+			self: {
+				boosts: {
+					def: 1,
+					spd: 1,
+				},
+			},
+		},
+		target: "normal",
+		type: "Fighting",
+		zMoveBoost: {def: 1, spd: 1, spe: 1},
+		contestType: "Clever",
+	},
+	"terrordrop": {
+		num: -604,
+		accuracy: 90,
+		basePower: 100,
+		category: "Physical",
+		desc: "20% chance to flinch.",
+		shortDesc: "20% chance to flinch.",
+		id: "terrordrop",
+		isViable: true,
+		name: "Terror Drop",
+		pp: 15,
+		priority: 0,
+		flags: {contact: 1, protect: 1, mirror: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Dark Void", source);
+			this.add('-anim', source, "Supersonic Skystrike", source);
+		},
+		secondary: {
+			chance: 20,
+			volatileStatus: 'flinch',
+		},
+		target: "normal",
+		type: "Ghost",
+		zMovePower: 180,
+		contestType: "Tough",
+	},
+	"bistrobomb": {
+		num: -605,
+		accuracy: 100,
+		basePower: 140,
+		category: "Physical",
+		desc: "No additional effect.",
+		shortDesc: "No additional effect.",
+		id: "bistrobomb",
+		isViable: true,
+		name: "Bistro Bomb",
+		pp: 5,
+		priority: 0,
+		flags: {contact: 1, protect: 1, mirror: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Lock-On", source);
+			this.add('-anim', source, "Egg Bomb", source);
+		},
+		secondary: false,
+		target: "normal",
+		type: "Steel",
+		zMovePower: 200,
+		contestType: "Cool",
 	},
 };

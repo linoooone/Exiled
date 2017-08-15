@@ -7,12 +7,91 @@ Basically just edits to main's info.js, and adds more, removes stuff, etc.
 'use strict';
 
 exports.commands = {
+
 	/*********************************************************
 	 * Informational commands
 	 *********************************************************/
 
+	'!statset': true,
+	statset: function () {
+		let statHP = Math.floor(Math.random() * 100) + 30;
+		let statAtk = Math.floor(Math.random() * 100) + 70;
+		let statDef = Math.floor(Math.random() * 100) + 40;
+		let statSpa = Math.floor(Math.random() * 100) + 70;
+		let statSpd = Math.floor(Math.random() * 100) + 40;
+		let statSpe = Math.floor(Math.random() * 100) + 60;
+		let statBst = statHP + statAtk + statDef + statSpa + statSpd + statSpe;
+		if (!this.runBroadcast()) return;
+		this.sendReplyBox('Generated Statset: ' + statHP + ' / ' + statAtk + ' / ' + statDef + ' / ' + statSpa + ' / ' + statSpd + ' / ' + statSpe + ' | BST: ' + statBst);
+		if (statBst <= 200) {
+			return this.sendReplyBox('Tier: LC');
+		} else if (statBst > 200 && statBst < 400) {
+			return this.sendReplyBox('Tier: NFE');
+		} else if (statBst > 400 && statBst < 500) {
+			return this.sendReplyBox('Tier: NU');
+		} else if (statBst > 500 && statBst < 600) {
+			return this.sendReplyBox('Tier: UU');
+		} else if (statBst > 600 && statBst < 680) {
+			return this.sendReplyBox('Tier: OU');
+		} else if (statBst > 680 && statBst < 800) {
+			return this.sendReplyBox('Tier: Ubers');
+		} else if (statBst >= 800) {
+			return this.sendReplyBox('Tier: AG');
+		}
+	},
+	statsethelp: [
+		"/statset - Generates a random spread of stats.",
+	],
+
+	'!type': true,
+	type: "randtype",
+	randtype: function () {
+		let gen = Math.floor(Math.random() * 18);
+		if (!this.runBroadcast()) return;
+		if (gen === 0) {
+			return this.sendReplyBox('Generated Type: Fire');
+		} else if (gen === 1) {
+			return this.sendReplyBox('Generated Type: Water');
+		} else if (gen === 2) {
+			return this.sendReplyBox('Generated Type: Grass');
+		} else if (gen === 3) {
+			return this.sendReplyBox('Generated Type: Electric');
+		} else if (gen === 4) {
+			return this.sendReplyBox('Generated Type: Ground');
+		} else if (gen === 5) {
+			return this.sendReplyBox('Generated Type: Rock');
+		} else if (gen === 6) {
+			return this.sendReplyBox('Generated Type: Flying');
+		} else if (gen === 7) {
+			return this.sendReplyBox('Generated Type: Poison');
+		} else if (gen === 8) {
+			return this.sendReplyBox('Generated Type: Fighting');
+		} else if (gen === 9) {
+			return this.sendReplyBox('Generated Type: Ice');
+		} else if (gen === 10) {
+			return this.sendReplyBox('Generated Type: Bug');
+		} else if (gen === 11) {
+			return this.sendReplyBox('Generated Type: Dragon');
+		} else if (gen === 12) {
+			return this.sendReplyBox('Generated Type: Psychic');
+		} else if (gen === 13) {
+			return this.sendReplyBox('Generated Type: Dark');
+		} else if (gen === 14) {
+			return this.sendReplyBox('Generated Type: Ghost');
+		} else if (gen === 15) {
+			return this.sendReplyBox('Generated Type: Steel');
+		} else if (gen === 16) {
+			return this.sendReplyBox('Generated Type: Fairy');
+		} else if (gen === 17) {
+			return this.sendReplyBox('Generated Type: Normal');
+		}
+	},
+	typehelp: [
+		"/type - Generates a random typing.",
+	],
+
 	'!groups': true,
-	groups: function (target, room, user) {
+	groups: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox(
 			"+ <b>Voice</b> - They can use ! commands like !groups, and talk during moderated chat.<br />" +
@@ -25,89 +104,101 @@ exports.commands = {
 			"~ <b>Administrator</b> - They can do anything, like change what this message says."
 		);
 	},
-	groupshelp: ["/groups - Explains what the + % @ # & next to people's names mean.",
+	groupshelp: [
+		"/groups - Explains what the + % @ # & next to people's names mean.",
 		"!groups - Shows everyone that information. Requires: + % @ * # & ~",
 	],
 
 	git: "opensource",
-	opensource: function (target, room, user) {
+	opensource: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox(
 			"Exiled's Github's:<br />" +
 			"- Language: JavaScript (Node.js)<br />" +
 			"- <a href=\"https://github.com/DeathlyPlays/Exiled\">Exiled Server Code</a><br />" +
-			"- <a href=\"https://github.com/ExiledPS\">Team Exiled Organization</a><br />" +
-			"Note: We allow anyone to join the organization, seeing as though the reason Exiled exists is due to people practicing/learning code, and having fun ^~^<br />"
+			"- <a href=\"https://github.com/ExiledPS\">Team Exiled Organization</a><br />"
 		);
 	},
-	opensourcehelp: ["/opensource - Links to PS's source code repository.",
+	opensourcehelp: [
+		"/opensource - Links to Exiled's source code repository.",
 		"!opensource - Show everyone that information. Requires: + % @ * # & ~",
 	],
 
 	'!forums': true,
-	forums: function (target, room, user) {
+	forums: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"http://exiledps.boards.net\">Exiled Forums</a>");
 	},
 
 	'!suggestions': true,
-	suggestions: function (target, room, user) {
+	suggestions: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"http://exiledps.boards.net/board/3/suggestions\">Make a suggestion for Exiled</a>");
 	},
 
-	'!dub': true,
-	dubtrack: 'dub',
-	dub: function (target, room, user) {
-		if (!this.runBroadcast()) return;
-		this.sendReplyBox("<a href=\"https://www.dubtrack.fm/join/exiled_147873230374424\">The Official Dubtrack for the Exiled Server</a>");
-	},
 	'!fakemon': true,
 	fakemons: 'fakemon',
-	fakemon: function (target, room, user) {
+	fakemon: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"https://goo.gl/forms/ho9YhvxrnXMY2QLI3\">Submit a Fakemon :D</a>");
 	},
 
 	'!skype': true,
-	skype: function (target, room, user) {
+	skype: function () {
 		if (!this.runBroadcast()) return;
-		this.sendReplyBox("<a href=\"https://join.skype.com/yKgbwohZWdHl\">The Official Skype Group</a>");
+		this.sendReplyBox("<a href=\"https://join.skype.com/Eo5DCq8nCh1j\">The Official Skype Group</a>");
 	},
 
 	'!discord': true,
-	discord: function (target, room, user) {
+	discord: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"https://discord.gg/3UWpXwa\">The Official Exiled Discord</a>");
 	},
 
 	'!reddit': true,
-	reddit: function (target, room, user) {
+	reddit: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"https://www.reddit.com/me/m/exiled_ps/\">The Official Exiled Reddit</a>");
 	},
 
 	'!facebook': true,
-	facebook: function (target, room, user) {
+	facebook: function () {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox("<a href=\"https://www.facebook.com/exiledserver/\">The Official Exiled Facebook Page</a>");
 	},
 
-	'!credits': true,
-	credits: function (target, room, user) {
+	//Credits to Snaquaza on these feature and other DragonHeaven developers/contributers
+	'fakemonlist': 'fakemonslist',
+	fakemonslist: function () {
 		if (!this.runBroadcast()) return;
-		this.sendReplyBox(
-			"<center><b>Exiled Credits:</b></center>" +
-			"<b>~Insist</b> -Main Developer and Owner of Exiled<br />" +
-			"<b>HoeenHero</b> -Mechanics<br />" +
-			"<b>%Stellation</b> -Assistant Developer.<br />" +
-			"<b>Other Exiled Auth</b> - Help making Exiled a good enviroment for the users.<br />" +
-			"Special Thanks to users like you for making Exiled a great server."
-		);
+		let buf = `<div class=infobox-limited><center><h2>List Of Fakemons</h2></center>`;
+		let fakemonsDex = require('../mods/fakemons/pokedex.js').BattlePokedex;
+		if (!fakemonsDex) return this.errorReply("Error Fetching Fakemons Data.");
+		Object.values(fakemonsDex).forEach(mon => {
+			buf += `<button name="send" value="/fakemondata ${mon.species}" style="background:none;border:none;">${mon.species}</button><br>`;
+		});
+		this.sendReplyBox(`${buf}</div>`);
+	},
+	fakemonslisthelp: ["/fakemonslist - Shows the list of Fakemons."],
+
+	learnfakemons: function (target) {
+		if (!this.runBroadcast()) return;
+		let learnfakemons = Dex.mod('fakemons').data.Learnsets, movefakemons = Dex.mod('fakemons').data.Movedex, dexfakemons = Dex.mod('fakemons').data.Pokedex;
+		if (!target || toId(target) === '') return this.sendReply("/learnfakemons: Shows the whether a Pokemon can learn a move, including Pokemon and Moves from fakemons.");
+		let targets = target.split(','), mon = targets[0], move = targets[1];
+		if (!mon || !dexfakemons[toId(mon)]) return this.errorReply("Error: Pokemon not found");
+		if (!learnfakemons[toId(mon)]) return this.errorReply("Error: Learnset not found");
+		if (!move || !movefakemons[toId(move)]) return this.errorReply("Error: Move not found");
+		mon = dexfakemons[toId(mon)];
+		move = movefakemons[toId(move)];
+		if (learnfakemons[toId(mon.species)].learnset[toId(move.name)]) {
+			return this.sendReplyBox("In Fakemons, " + mon.species + ' <font color="green"><u><b>can<b><u></font> learn ' + move.name);
+		}
+		return this.sendReplyBox("In Fakemons, " + mon.species + ' <font color="red"><u><b>can\'t<b><u></font> learn ' + move.name);
 	},
 
 	'!bugs': true,
-	bugs: function (target, room, user) {
+	bugs: function (room) {
 		if (!this.runBroadcast()) return;
 		if (room && room.battle) {
 			this.sendReplyBox("<center><button name=\"saveReplay\"><i class=\"fa fa-upload\"></i> Save Replay</button> &mdash; <a href=\"https://www.smogon.com/forums/threads/3520646/\">Questions</a> &mdash; <a href=\"https://www.smogon.com/forums/threads/3469932/\">Bug Reports</a></center>");
@@ -120,7 +211,7 @@ exports.commands = {
 	},
 
 	'!roomhelp': true,
-	roomhelp: function (target, room, user) {
+	roomhelp: function (room) {
 		if (!this.canBroadcast('!htmlbox')) return;
 		if (this.broadcastMessage && !this.can('declare', null, room)) return false;
 
@@ -177,8 +268,8 @@ exports.commands = {
 		if (!target) {
 			if (!this.runBroadcast()) return;
 			this.sendReplyBox("Please follow the rules:<br />" +
-				(room && room.rulesLink ? "- <a href=\"http://exiledps.boards.net/thread/4/exiled-rules-regulations\"" + Chat.escapeHTML(room.rulesLink) + "\">" + Chat.escapeHTML(room.title) + " room rules</a><br />" : "") +
-				"- <a href=\"\">" + (room && room.rulesLink ? "Global rules" : "Rules") + "</a>");
+				(room && room.rulesLink ? "- <a href=\"" + Chat.escapeHTML(room.rulesLink) + "\">" + Chat.escapeHTML(room.title) + " room rules</a><br />" : "") +
+				"- <a href=\"http://exiledps.boards.net/thread/4/exiled-rules\">" + (room && room.rulesLink ? "Global rules" : "Rules") + "</a>");
 			return;
 		}
 		if (!room) {
@@ -199,6 +290,30 @@ exports.commands = {
 	},
 	ruleshelp: ["/rules - Show links to room rules and global rules.",
 		"!rules - Show everyone links to room rules and global rules. Requires: + % @ * # & ~",
-		"/rules [url] - Change the room rules URL. Requires: # & ~",
-	],
+		"/rules [url] - Change the room rules URL. Requires: # & ~"],
+
+	servercredits: 'credits',
+	credits: function (target, room, user) {
+		let popup = "|html|" + "<font size=5 color=#F7189F><u><b>Exiled Credits:</b></u></font><br />" +
+			"<br />" +
+			"<u><b>Server Maintainers:</u></b><br />" +
+			"- " + Exiled.nameColor('Insist', true) + " (Owner, Sysadmin, Main Developer)<br />" +
+			"- " + Exiled.nameColor('Mewth', true) + " (Co-Owner, Sysadmin, Developer)<br />" +
+			"<br />" +
+			"<u><b>Major Contributors:</b></u><br />" +
+			"- " + Exiled.nameColor('AlfaStorm', true) + " (Developer)<br />" +
+			"- " + Exiled.nameColor('Back At My Day', true) + " (Developer)<br />" +
+			"- " + Exiled.nameColor('flufi', true) + " (Code Breaker, Developer)<br />" +
+			"- " + Exiled.nameColor('Gligars', true) + " (Developer)<br />" +
+			"<br />" +
+			"<u><b>Retired Staff:</b></u><br />" +
+			"- " + Exiled.nameColor('Lass Ninetales', true) + " (Former Owner, Developer, CSS Developments)<br />" +
+			"- " + Exiled.nameColor('Volco', true) + " (Former Owner, and Developer)<br />" +
+			"- " + Exiled.nameColor('Alpha Hawk', true) + " (Former Developer)<br />" +
+			"<br />" +
+			"<u><b>Special Thanks:</b></u><br />" +
+			"- Our Staff Members<br />" +
+			"- Our Regular Users<br />";
+		user.popup(popup);
+	},
 };

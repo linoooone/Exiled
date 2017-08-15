@@ -9,6 +9,7 @@ exports.BattleMovedex = {
 		isNonstandard: true,
 		name: "Oran Berry",
 		pp: 0.625,
+		desc: "Restores 1/4 max HP.",
 		priority: 0,
 		flags: {
 			heal: 1,
@@ -44,7 +45,7 @@ exports.BattleMovedex = {
 		onPrepareHit: function (target, source) {
 			this.attrLastMove('[still]');
 		},
-
+		desc: "Restores 1/10 max HP, raises Speed by two stages.",
 	},
 	//Blast Seed
 	blastseed: {
@@ -67,6 +68,7 @@ exports.BattleMovedex = {
 		},
 		target: "normal",
 		type: "Normal",
+		desc: "No additional effects.",
 	},
 	//Gravelrock
 	gravelrock: {
@@ -88,6 +90,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Rock Blast", target);
 		},
+		desc: "Hits 4-7 times.",
 		secondary: false,
 		target: "normal",
 		type: "Rock",
@@ -111,6 +114,7 @@ exports.BattleMovedex = {
 		onHit: function (pokemon) {
 			pokemon.cureStatus();
 		},
+		desc: "Cures user of any status effects.",
 		secondary: false,
 		target: "self",
 		type: "Normal",
@@ -134,6 +138,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Stealth Rock", target);
 		},
+		desc: "Places Stealth Rocks on foe's field.",
 		secondary: false,
 		target: "foeSide",
 		type: "Ground",
@@ -165,6 +170,7 @@ exports.BattleMovedex = {
 				}
 			}
 		},
+		desc: "Removes some types of hazards.",
 		secondary: false,
 		target: "normal",
 		type: "Normal",
@@ -187,6 +193,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Bullet Seed", target);
 		},
+		desc: "Ignores Immunities, paralyzes target.",
 		status: 'par',
 		ignoreImmunity: true,
 		target: "normal",
@@ -211,6 +218,7 @@ exports.BattleMovedex = {
 			this.add('-anim', source, "Bullet Seed", target);
 		},
 		volatileStatus: 'confusion',
+		desc: "Confuses target.",
 		secondary: false,
 		target: "normal",
 		type: "Normal",
@@ -237,6 +245,7 @@ exports.BattleMovedex = {
 			def: -1,
 			spd: -1,
 		},
+		desc: "Lowers target's Defense and Special Defense by one stage.",
 		target: "normal",
 		type: "Normal",
 	},
@@ -262,6 +271,7 @@ exports.BattleMovedex = {
 			atk: 1,
 			spa: 1,
 		},
+		desc: "Raises user's Attack and Special Attack by one stage.",
 		target: "self",
 		type: "Normal",
 	},
@@ -279,6 +289,7 @@ exports.BattleMovedex = {
 			this.add('-anim', source, "Rain Dance", target);
 		},
 		weather: 'Rain Dance',
+		desc: "Sets the weather to Rain Dance.",
 		secondary: false,
 		target: "all",
 		type: "Water",
@@ -296,6 +307,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Sunny Day", target);
 		},
+		desc: "Sets weather to Sunny Day.",
 		weather: 'Sunny Day',
 		secondary: false,
 		target: "all",
@@ -314,6 +326,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Sandstorm", target);
 		},
+		desc: "Sets weather to Sandstorm.",
 		weather: 'Sandstorm',
 		secondary: false,
 		target: "all",
@@ -332,6 +345,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Hail", target);
 		},
+		desc: "Sets weather to Hail.",
 		weather: 'Hail',
 		secondary: false,
 		target: "all",
@@ -354,6 +368,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Water Spout", target);
 		},
+		desc: "Ignores Immunities.",
 		ignoreImmunity: true,
 		secondary: false,
 		target: "normal",
@@ -372,6 +387,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Defog", target);
 		},
+		desc: "Ignores immunities, forces foe to switch.",
 		forceSwitch: true,
 		ignoreImmunity: true,
 		secondary: false,
@@ -391,6 +407,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Teleport", target);
 		},
+		desc: "Ignores Immunities, Copies stats and gives them to whatever the user swaps in.",
 		selfSwitch: 'copyvolatile',
 		ignoreImmunity: true,
 		secondary: false,
@@ -416,6 +433,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Pin Missle", target);
 		},
+		desc: "Hits 5-10 times.",
 		secondary: false,
 		target: "normal",
 		type: "Normal",
@@ -439,6 +457,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Flash Cannon", target);
 		},
+		desc: "Hits 4-7 times.",
 		secondary: false,
 		target: "normal",
 		type: "Steel",
@@ -462,6 +481,7 @@ exports.BattleMovedex = {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Calm Mind", target);
 		},
+		desc: "Boosts user's Evasion by one stage.",
 		secondary: false,
 		target: "self",
 		type: "Psychic",
@@ -470,22 +490,11 @@ exports.BattleMovedex = {
 	mugorb: {
 		accuracy: 100,
 		category: "Status",
-		basePower: 40,
-		onHit: function (target, source) {
-			if (source.item || source.volatiles['gem']) {
-				return;
-			}
-			let yourItem = target.takeItem(source);
-			if (!yourItem) {
-				return;
-			}
-			if (!source.setItem(yourItem)) {}
-		},
 		id: "mugorb",
 		isNonstandard: true,
 		name: "Mug Orb",
 		pp: 0.625,
-		priority: 0,
+		priority: 4,
 		flags: {
 			authentic: 1,
 		},
@@ -509,9 +518,10 @@ exports.BattleMovedex = {
 				}
 			},
 		},
+		desc: "Snatches a move, if the target's move has the Snatch flag.",
 		secondary: false,
 		pressureTarget: "foeSide",
-		target: "normal",
+		target: "self",
 		type: "Dark",
 	},
 	//Wonder Orb
@@ -533,6 +543,7 @@ exports.BattleMovedex = {
 			this.add('message', source.name + '\'s wonder orb let it use a ' + toUse + '!');
 			this.useMove(toUse, target);
 		},
+		desc: "Randomly chooses a PMD move.",
 		secondary: false,
 		target: "self",
 		type: "Fairy",
@@ -565,6 +576,7 @@ exports.BattleMovedex = {
 			spa: 1,
 			spd: 1,
 		},
+		desc: "Boosts user's Atk, Def, SpA, and SpD by one stage.",
 		secondary: false,
 		target: "self",
 		type: "Fairy",
@@ -576,20 +588,212 @@ exports.BattleMovedex = {
 		id: "sleepseed",
 		isNonstandard: true,
 		name: "Sleep Seed",
+		basePower: 0,
 		pp: 0.625,
 		priority: 0,
-		flags: {
-			authentic: 1,
-			bullet: 1,
-			snatch: 1,
-		},
+		flags: {authentic: 1, bullet: 1, snatch: 1},
 		onPrepareHit: function (target, source) {
 			this.attrLastMove('[still]');
 			this.add('-anim', source, "Bullet Seed", target);
+			this.add('-anim', target, "Rest", target);
 		},
-		volatileStatus: 'slp',
+		desc: "Puts target to sleep.",
+		status: 'slp',
+		target: "normal",
+		type: "Normal",
+	},
+	//Quick Seed
+	quickseed: {
+		id: "quickseed",
+		name: "Quick Seed",
+		accuracy: true,
+		category: "Status",
+		isNonstandard: true,
+		pp: 0.625,
+		flags: {snatch: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Agility", source);
+		},
+		boosts: {spe: 2},
+		desc: "Boosts user's Speed by 2 stages.",
+		basePower: 0,
+		priority: 0,
 		secondary: false,
+		target: "self",
+		type: "Grass",
+	},
+	//Blinker Seed
+	blinkerseed: {
+		id: "blinkerseed",
+		name: "Blinker Seed",
+		accuracy: true,
+		basePower: 0,
+		category: "Status",
+		isNonstandard: true,
+		pp: 0.625,
+		flags: {snatch: 1},
+		onPrepareHit: function (source, target) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Smokescreen", target);
+		},
+		desc: "Lower's targets accuracy by one stage.",
+		boosts: {accuracy: -1},
+		priority: 0,
+		secondary: false,
+		target: "normal",
+		type: "Grass",
+	},
+	//X-Eye Seed
+	xeyeseed: {
+		id: "xeyeseed",
+		name: "X-Eye Seed",
+		accuracy: true,
+		basePower: 0,
+		category: "Status",
+		isNonstandard: true,
+		pp: 0.625,
+		priority: 0,
+		secondary: false,
+		flags: {snatch: 1},
+		onPrepareHit: function (source, target) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Confuse Ray", target);
+			this.add('-anim', source, "Substitute", source);
+		},
+		self: {
+			volatileStatus: "substitute",
+		},
+		volatileStatus: "confusion",
+		target: "normal",
+		desc: "Confuses target, and employs the user in a substitute.",
+		type: "Grass",
+	},
+	//Slip Seed
+	slipseed: {
+		accuracy: 100,
+		basePower: 0,
+		category: "Status",
+		desc: "Causes self to become a Water type.",
+		shortDesc: "Changes the self's type to Water.",
+		id: "slipseed",
+		name: "Slip Seed",
+		pp: 0.625,
+		priority: 0,
+		flags: {protect: 1, reflectable: 1, mirror: 1, mystery: 1},
+		onHit: function (target) {
+			if (!target.setType('Water')) return false;
+			this.add('-start', target, 'typechange', 'Water');
+		},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Soak", source);
+		},
+		secondary: false,
+		target: "self",
+		type: "Water",
+	},
+	//Decoy Orb
+	decoyorb: {
+		accuracy: true,
+		basePower: 0,
+		category: "Status",
+		pp: 0.625,
+		id: "decoyorb",
+		name: "Decoy Orb",
+		priority: 0,
+		//Substitute
+		volatileStatus: 'Substitute',
+		desc: "Employs the user into a Substitute.",
+		secondary: false,
+		flags: {snatch: 1},
+		onPrepareHit: function (source) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Substitute", source);
+		},
+		target: "self",
+		type: "Normal",
+	},
+	//Pounce Orb
+	pounceorb: {
+		accuracy: true,
+		basePower: 60,
+		pp: 0.625,
+		category: "Special",
+		id: "pounceorb",
+		name: "Pounce Orb",
+		priority: 0,
+		secondary: false,
+		flags: {protect: 1},
+		//Makes the target switch out
+		forceSwitch: true,
+		onPrepareHit: function (source, target) {
+			this.attrLastMove('[still]');
+			this.add('-anim', source, "Roar", target);
+			this.add('-anim', source, "Dragon Tail", target);
+		},
+		desc: "Makes the target swap out.",
+		target: "normal",
+		type: "Normal",
+	},
+	//Sizebust Orb
+	sizebustorb: {
+		id: "sizebustorb",
+		name: "Sizebust Orb",
+		pp: 0.625,
+		basePower: 0,
+		basePowerCallback: function (pokemon, target) {
+			let targetWeight = target.getWeight();
+			if (targetWeight >= 200) {
+				this.debug('120 bp');
+				return 120;
+			}
+			if (targetWeight >= 100) {
+				this.debug('100 bp');
+				return 100;
+			}
+			if (targetWeight >= 50) {
+				this.debug('80 bp');
+				return 80;
+			}
+			if (targetWeight >= 25) {
+				this.debug('60 bp');
+				return 60;
+			}
+			if (targetWeight >= 10) {
+				this.debug('40 bp');
+				return 40;
+			}
+			this.debug('20 bp');
+			return 20;
+		},
+		desc: "Does damage according to the target's weight, the more heavy more damage.",
+		category: "Special",
+		priority: 0,
+		accuracy: true,
+		flags: {protect: 1},
+		target: "normal",
+		type: "Grass",
+	},
+	//Transfer Orb
+	transferorb: {
+		id: "transferorb",
+		name: "Transfer Orb",
+		pp: 0.625,
+		basePower: 0,
+		//Makes target transfer into user
+		onHit: function (target, pokemon) {
+			if (!target.transformInto(pokemon, target)) {
+				return false;
+			}
+		},
+		desc: "Makes the target transform into the user.",
+		accuracy: true,
+		flags: {snatch: 1},
+		priority: 0,
+		category: "Status",
 		target: "normal",
 		type: "Normal",
 	},
 };
+

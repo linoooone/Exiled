@@ -1,56 +1,55 @@
 'use strict';
 
-const fs = require('fs');
+const FS = require('fs');
 const nani = require('nani').init("niisama1-uvake", "llbgsBx3inTdyGizCPMgExBVmQ5fU");
+const https = require('https');
+const http = require('http');
 let request = require('request');
-let path = require('path');
-let selectors;
+
+const bubbleLetterMap = new Map([
+	['a', '\u24D0'], ['b', '\u24D1'], ['c', '\u24D2'], ['d', '\u24D3'], ['e', '\u24D4'], ['f', '\u24D5'], ['g', '\u24D6'], ['h', '\u24D7'], ['i', '\u24D8'], ['j', '\u24D9'], ['k', '\u24DA'], ['l', '\u24DB'], ['m', '\u24DC'],
+	['n', '\u24DD'], ['o', '\u24DE'], ['p', '\u24DF'], ['q', '\u24E0'], ['r', '\u24E1'], ['s', '\u24E2'], ['t', '\u24E3'], ['u', '\u24E4'], ['v', '\u24E5'], ['w', '\u24E6'], ['x', '\u24E7'], ['y', '\u24E8'], ['z', '\u24E9'],
+	['A', '\u24B6'], ['B', '\u24B7'], ['C', '\u24B8'], ['D', '\u24B9'], ['E', '\u24BA'], ['F', '\u24BB'], ['G', '\u24BC'], ['H', '\u24BD'], ['I', '\u24BE'], ['J', '\u24BF'], ['K', '\u24C0'], ['L', '\u24C1'], ['M', '\u24C2'],
+	['N', '\u24C3'], ['O', '\u24C4'], ['P', '\u24C5'], ['Q', '\u24C6'], ['R', '\u24C7'], ['S', '\u24C8'], ['T', '\u24C9'], ['U', '\u24CA'], ['V', '\u24CB'], ['W', '\u24CC'], ['X', '\u24CD'], ['Y', '\u24CE'], ['Z', '\u24CF'],
+	['1', '\u2460'], ['2', '\u2461'], ['3', '\u2462'], ['4', '\u2463'], ['5', '\u2464'], ['6', '\u2465'], ['7', '\u2466'], ['8', '\u2467'], ['9', '\u2468'], ['0', '\u24EA'],
+]);
+
+const asciiMap = new Map([
+	['\u24D0', 'a'], ['\u24D1', 'b'], ['\u24D2', 'c'], ['\u24D3', 'd'], ['\u24D4', 'e'], ['\u24D5', 'f'], ['\u24D6', 'g'], ['\u24D7', 'h'], ['\u24D8', 'i'], ['\u24D9', 'j'], ['\u24DA', 'k'], ['\u24DB', 'l'], ['\u24DC', 'm'],
+	['\u24DD', 'n'], ['\u24DE', 'o'], ['\u24DF', 'p'], ['\u24E0', 'q'], ['\u24E1', 'r'], ['\u24E2', 's'], ['\u24E3', 't'], ['\u24E4', 'u'], ['\u24E5', 'v'], ['\u24E6', 'w'], ['\u24E7', 'x'], ['\u24E8', 'y'], ['\u24E9', 'z'],
+	['\u24B6', 'A'], ['\u24B7', 'B'], ['\u24B8', 'C'], ['\u24B9', 'D'], ['\u24BA', 'E'], ['\u24BB', 'F'], ['\u24BC', 'G'], ['\u24BD', 'H'], ['\u24BE', 'I'], ['\u24BF', 'J'], ['\u24C0', 'K'], ['\u24C1', 'L'], ['\u24C2', 'M'],
+	['\u24C3', 'N'], ['\u24C4', 'O'], ['\u24C5', 'P'], ['\u24C6', 'Q'], ['\u24C7', 'R'], ['\u24C8', 'S'], ['\u24C9', 'T'], ['\u24CA', 'U'], ['\u24CB', 'V'], ['\u24CC', 'W'], ['\u24CD', 'X'], ['\u24CE', 'Y'], ['\u24CF', 'Z'],
+	['\u2460', '1'], ['\u2461', '2'], ['\u2462', '3'], ['\u2463', '4'], ['\u2464', '5'], ['\u2465', '6'], ['\u2466', '7'], ['\u2467', '8'], ['\u2468', '9'], ['\u24EA', '0'],
+]);
 
 let amCache = {
 	anime: {},
 	manga: {},
 };
 
-Exiled.customColors = {};
+let Reports = {};
 
-global.isYouTube = function (user) {
-	if (!user) return;
-	if (typeof user === 'object') user = user.userid;
-	let youtube = Db('youtube').get(toId(user));
-	if (youtube === 1) return true;
-	return false;
+let regdateCache = {};
+
+Exiled.img = function (link, height, width) {
+	if (!link) return '<font color="maroon">ERROR : You must supply a link.</font>';
+	return '<img src="' + link + '"' + (height ? ' height="' + height + '"' : '') + (width ? ' width="' + width + '"' : '') + '/>';
 };
 
-//Daily Rewards System for SpacialGaze by Lord Haji
-Exiled.giveDailyReward = function (userid, user) {
-	if (!user || !userid) return false;
-	userid = toId(userid);
-	if (!Db('DailyBonus').has(userid)) {
-		Db('DailyBonus').set(userid, [1, Date.now()]);
-		return false;
-	}
-	let lastTime = Db('DailyBonus').get(userid)[1];
-	if ((Date.now() - lastTime) < 86400000) return false;
-	if ((Date.now() - lastTime) >= 127800000) Db('DailyBonus').set(userid, [1, Date.now()]);
-	if (Db('DailyBonus').get(userid)[0] === 8) Db('DailyBonus').set(userid, [7, Date.now()]);
-	Economy.writeMoney(userid, Db('DailyBonus').get(userid)[0]);
-	user.send('|popup||wide||html| <center><u><b><font size="3">Exiled Daily Bonus</font></b></u><br>You have been awarded ' + Db('DailyBonus').get(userid)[0] + ' Buck.<br>' + showDailyRewardAni(userid) + '<br>Because you have connected to the server for the past ' + Db('DailyBonus').get(userid)[0] + ' Days.</center>');
-	Db('DailyBonus').set(userid, [(Db('DailyBonus').get(userid)[0] + 1), Date.now()]);
+Exiled.font = function (text, color, bold) {
+	if (!text) return '<font color="maroon">ERROR : Please provide some text.</font>';
+	return '<font color="' + (color ? color : 'black') + '">' + (bold ? '<b>' : '') + text + (bold ? '</b>' : '') + '</font>';
 };
 
-function showDailyRewardAni(userid) {
-	userid = toId(userid);
-	let streak = Db('DailyBonus').get(userid)[0];
-	let output = '';
-	for (let i = 1; i <= streak; i++) {
-		output += "<img src='https://www.mukuru.com/media/img/icons/new_order.png' width='16' height='16'> ";
-	}
-	return output;
-}
+Exiled.log = function (file, text) {
+	if (!file) return '<font color="maroon">ERROR : No file specified!</font>';
+	if (!text) return '<font color="maroon">ERROR : No text specified!</font>';
+	FS.appendFile(file, text);
+};
 
 let urbanCache;
 try {
-	urbanCache = JSON.parse(fs.readFileSync('../config/udcache.json', 'utf8'));
+	urbanCache = JSON.parse(FS.readFileSync('../config/udcache.json', 'utf8'));
 } catch (e) {
 	urbanCache = {};
 }
@@ -61,75 +60,136 @@ function cacheUrbanWord(word, definition) {
 		"definition": definition,
 		"time": Date.now(),
 	};
-	fs.writeFile('config/udcache.json', JSON.stringify(urbanCache));
+	FS.writeFile('config/udcache.json', JSON.stringify(urbanCache));
 }
 
-global.isDev = function (user) {
+function loadReports() {
+	try {
+		Reports = JSON.parse(FS.readFileSync('config/reports.json'));
+	} catch (e) {
+		Reports = {};
+	}
+}
+loadReports();
+
+function saveReports() {
+	FS.writeFile('config/reports.json', JSON.stringify(Reports));
+}
+
+function getLinkId(msg) {
+	msg = msg.split(' ');
+	for (let i = 0; i < msg.length; i++) {
+		if ((/youtu\.be/i).test(msg[i])) {
+			let temp = msg[i].split('/');
+			return temp[temp.length - 1];
+		} else if ((/youtube\.com/i).test(msg[i])) {
+			return msg[i].substring(msg[i].indexOf("=") + 1).replace(".", "");
+		}
+	}
+}
+
+function isDev(user) {
 	if (!user) return;
 	if (typeof user === 'object') user = user.userid;
 	let dev = Db('devs').get(toId(user));
 	if (dev === 1) return true;
 	return false;
-};
-
-function writeIconCSS() {
-	fs.appendFile('config/custom.css', selectors);
 }
 
-function logMoney(message) {
-	if (!message) return;
-	let file = path.join(__dirname, '../logs/money.txt');
-	let date = "[" + new Date().toUTCString() + "] ";
-	let msg = message + "\n";
-	fs.appendFile(file, date + msg);
+function parseStatus(text, encoding) {
+	if (encoding) {
+		text = text
+			.split('')
+			.map(char => bubbleLetterMap.get(char))
+			.join('');
+	} else {
+		text = text
+			.split('')
+			.map(char => asciiMap.get(char))
+			.join('');
+	}
+	return text;
+}
+
+let monData;
+try {
+	monData = FS.readFileSync("data/ssb-data.txt").toString().split("\n\n");
+} catch (e) {
+	console.error(e);
+}
+
+function getMonData(target) {
+	let returnData = null;
+	monData.forEach(function (data) {
+		if (toId(data.split("\n")[0].split(" - ")[0] || " ") === target) {
+			returnData = data.split("\n").map(function (line) {
+				return Chat.escapeHTML(line);
+			}).join("<br />");
+		}
+	});
+	return returnData;
+}
+
+function clearRoom(room) {
+	let len = (room.log && room.log.length) || 0;
+	let users = [];
+	while (len--) {
+		room.log[len] = '';
+	}
+	for (let u in room.users) {
+		users.push(u);
+		Users(u).leaveRoom(room, Users(u).connections[0]);
+	}
+	len = users.length;
+	setTimeout(() => {
+		while (len--) {
+			Users(users[len]).joinRoom(room, Users(users[len]).connections[0]);
+		}
+	}, 1000);
+}
+
+Exiled.regdate = function (target, callback) {
+	target = toId(target);
+	if (regdateCache[target]) return callback(regdateCache[target]);
+	let options = {
+		host: 'pokemonshowdown.com',
+		port: 80,
+		path: '/users/' + target + '.json',
+		method: 'GET',
+	};
+	http.get(options, function (res) {
+		let data = '';
+		res.on('data', function (chunk) {
+			data += chunk;
+		}).on('end', function () {
+			data = JSON.parse(data);
+			let date = data['registertime'];
+			if (date !== 0 && date.toString().length < 13) {
+				while (date.toString().length < 13) {
+					date = Number(date.toString() + '0');
+				}
+			}
+			if (date !== 0) {
+				regdateCache[target] = date;
+				saveRegdateCache();
+			}
+			callback((date === 0 ? false : date));
+		});
+	});
+};
+
+function loadRegdateCache() {
+	try {
+		regdateCache = JSON.parse(FS.readFileSync('config/regdate.json', 'utf8'));
+	} catch (e) {}
+}
+loadRegdateCache();
+
+function saveRegdateCache() {
+	FS.writeFileSync('config/regdate.json', JSON.stringify(regdateCache));
 }
 
 exports.commands = {
-	youtube: function (target, room, user) {
-		let parts = target.split(', ');
-		if (!target) return this.parse("/help youtube");
-		let username = toId(parts[1]);
-
-		switch (toId(parts[0])) {
-		case 'give':
-			if (!this.can('lock')) return false;
-			if (parts[1] < 1) return false;
-			if (!parts[1]) return false;
-			if (isYouTube(username)) return this.errorReply(user.name + " is already a YouTuber.");
-			Db('youtube').set(username, 1);
-			user.send('|popup|' + toId(parts[1]) + " has received YouTube status from " + user.name + "");
-			this.sendReply(username + ' has been granted with YouTube status.');
-			break;
-
-		case 'take':
-			if (!this.can('lock')) return false;
-			if (!parts[1] < 1) return false;
-			if (!parts[1]) return false;
-			Db('youtube').delete(username);
-			user.send('|popup|' + toId(parts[1]) + " has taken YouTuber status from " + user.name + "");
-			this.sendReply(toId(parts[1]) + '\'s YouTuber status has been taken.');
-			break;
-
-		case 'list':
-			if (!this.can('broadcast')) return false;
-			if (!Object.keys(Db('youtube').object()).length) return this.errorReply('There seems to be no user with YouTuber status.');
-			this.sendReplyBox('<center><b><u>YouTubers</u></b></center>' + '<br /><br />' + Object.keys(Db('youtube').object()).join('<br />'));
-			break;
-
-
-		default:
-			this.parse("/help youtube");
-		}
-	},
-	youtubehelp: ["Give: /youtube give, user - Gives user YouTuber status.",
-		"Take: /youtube take, user - Takes YouTuber status from user.",
-		"List: /youtube list - Lists all users with YouTuber status.",
-	],
-
-	/* * * * * * * * * * * * *
-	 * User of the Week      *
-	 * Created by Celestial  *
-	 * * * * * * * * * * * * */
 	useroftheweek: 'uotw',
 	uotw: function (target, room, user) {
 		if (toId(target.length) >= 19) return this.errorReply("Usernames have to be 18 characters or less");
@@ -163,130 +223,6 @@ exports.commands = {
 		"/uotw - View the current User of the Week",
 		"/uotw [user] - Set the User of the Week. Requires: % or higher.",
 	],
-
-	/* * * * * * * *
-	 * Devs List   *
-	 * Created By: *
-	 * CateQuil    *
-	 * * * * * * * */
-
-	dev: function (target, room, user) {
-		let parts = target.split(', ');
-		if (!target) return this.parse("/help dev");
-		let username = toId(parts[1]);
-
-		switch (toId(parts[0])) {
-		case 'give':
-			if (!this.can('lock')) return false;
-			if (parts[1] < 1) return false;
-			if (!parts[1]) return false;
-			if (isDev(username)) return this.errorReply(user.name + " is already a dev.");
-			Db('devs').set(username, 1);
-			user.send('|popup|' + toId(parts[1]) + " has received Developer status from " + user.name + "");
-			this.sendReply(username + ' has been granted with dev status.');
-			break;
-
-		case 'take':
-			if (!this.can('lock')) return false;
-			if (!parts[1] < 1) return false;
-			if (!parts[1]) return false;
-			Db('devs').delete(username);
-			user.send('|popup|' + toId(parts[1]) + " has taken Developer status from " + user.name + "");
-			this.sendReply(toId(parts[1]) + '\'s dev status has been taken.');
-			break;
-
-		case 'list':
-			if (!this.can('broadcast')) return false;
-			if (!Object.keys(Db('devs').object()).length) return this.errorReply('There seems to be no user with dev status.');
-			this.sendReplyBox('<center><b><u>DEV Users</u></b></center>' + '<br /><br />' + Object.keys(Db('devs').object()).join('<br />'));
-			break;
-
-		default:
-			this.parse("/help dev");
-		}
-	},
-	devhelp: ["Give: /dev give, user - Gives user developer status.",
-		"Take: /dev take, user - Takes developer status from user.",
-		"List: /dev list - Lists all users with developer status.",
-	],
-
-	/* * * * * * * * * * * * *
-	 *  Allow letious games  *
-	 *  to be played in      *
-	 *  unspecified rooms    *
-	 *  by Insist		     *
-	 * * * * * * * * * * * * */
-
-	registerquestionws: 'registertrivia',
-	registerqws: 'registertrivia',
-	registerquestionworkshop: 'registertrivia',
-	registertrivia: function (target, room, user) {
-		if (!user.can('lock')) return this.errorReply("/registertrivia - Access denied");
-		if (!target) return this.parse("/help registertrivia");
-		if (!Rooms(toId(target))) return this.errorReply("The specified room does not exist");
-		let targetRoom = Rooms(toId(target));
-		targetRoom.add('|raw|<div class="broadcast-green"><b>' + user.name + ' has just added Trivia to this room.</b></div>');
-		targetRoom.update();
-		if (!targetRoom.isQuestionWorkshop) {
-			targetRoom.isQuestionWorkshop = true;
-			targetRoom.chatRoomData.isQuestionWorkshop = true;
-			Rooms.global.writeChatRoomData();
-		} else {
-			this.errorReply("This room already is registered as a Trivia room.");
-		}
-	},
-	registertriviahelp: ["/registertrivia [room] - Adds Trivia to a room. Requires % or higher."],
-
-	deregistertrivia: function (target, room, user) {
-		if (!user.can('lock')) return this.errorReply("/deregistertrivia - Access denied");
-		if (!target) return this.parse("/help deregistertrivia");
-		if (!Rooms(toId(target))) return this.errorReply("The specified room does not exist");
-		let targetRoom = Rooms(toId(target));
-		targetRoom.update();
-		if (targetRoom.isQuestionWorkshop) {
-			delete targetRoom.isQuestionWorkshop;
-			delete targetRoom.chatRoomData.isQuestionWorkshop;
-			Rooms.global.writeChatRoomData();
-			this.sendReply("Trivia has been removed from this room.");
-		} else {
-			this.errorReply("This room is not registered as a Trivia room.");
-		}
-	},
-	deregistertriviahelp: ["/deregistertrivia [room] - Removes Trivia from a room. Requires % or higher."],
-
-	registerscavenger: function (target, room, user) {
-		if (!user.can('lock')) return this.errorReply("/registerscavenger - Access denied");
-		if (!target) return this.parse("/help registerscavenger");
-		if (!Rooms(toId(target))) return this.errorReply("The specified room does not exist");
-		let targetRoom = Rooms(toId(target));
-		targetRoom.add('|raw|<div class="broadcast-green"><b>' + user.name + ' has just added Scavenger to this room.</b></div>');
-		targetRoom.update();
-		if (!targetRoom.isScavenger) {
-			targetRoom.isScavenger = true;
-			targetRoom.chatRoomData.isScavenger = true;
-			Rooms.global.writeChatRoomData();
-		} else {
-			this.errorReply("This room already is registered as a Scavenger room.");
-		}
-	},
-	registerscavengerhelp: ["/registerscavenger [room] - Adds Scavenger to a room. Requires % or higher."],
-
-	deregisterscavenger: function (target, room, user) {
-		if (!user.can('lock')) return this.errorReply("/deregisterscavenger - Access denied");
-		if (!target) return this.parse("/help deregisterscavenger");
-		if (!Rooms(toId(target))) return this.errorReply("The specified room does not exist");
-		let targetRoom = Rooms(toId(target));
-		targetRoom.update();
-		if (targetRoom.isScavenger) {
-			delete targetRoom.isScavenger;
-			delete targetRoom.chatRoomData.isScavenger;
-			Rooms.global.writeChatRoomData();
-			this.sendReply("Scavenger has been removed from this room.");
-		} else {
-			this.errorReply("This room is not registered as a Scavenger room.");
-		}
-	},
-	deregisterscavengerhelp: ["/deregisterscavenger [room] - Removes Scavenger from a room. Requires % or higher."],
 
 	etour: function (target, room, user) {
 		if (!target) return this.parse("/help etour");
@@ -323,6 +259,7 @@ exports.commands = {
 
 		if (!target) return this.sendReply("Usage: /autorank [rank] - Automatically promotes user to the specified rank when they join the room.");
 		if (!this.can('roommod', null, room)) return false;
+		if (room.isPersonal) return this.sendReply('Autorank is not currently a feature in groupchats.');
 		target = target.trim();
 
 		if (target === 'off' && room.autorank) {
@@ -361,6 +298,7 @@ exports.commands = {
 	},
 	devshelp: ["/devs - Shows the coders of the server."],
 
+	'!define': true,
 	def: 'define',
 	define: function (target, room, user) {
 		if (!target) return this.parse('/help define');
@@ -399,6 +337,7 @@ exports.commands = {
 	},
 	definehelp: ["/define [word] - Shows the definition of a word."],
 
+	'!ud': true,
 	u: 'ud',
 	urbandefine: 'ud',
 	ud: function (target, room, user, connection, cmd) {
@@ -448,6 +387,7 @@ exports.commands = {
 	},
 	udhelp: ["/urbandefine [phrase] - Shows the urban definition of the phrase. If you don't put in a phrase, it will show you a random phrase from urbandefine."],
 
+	rf: 'roomfounder',
 	roomfounder: function (target, room, user) {
 		if (!room.chatRoomData) {
 			return this.sendReply("/roomfounder - This room isn't designed for per-room moderation to be added");
@@ -471,7 +411,7 @@ exports.commands = {
 		room.founder = userid;
 		this.addModCommand(`${name} was appointed Room Founder by ${user.name}.`);
 		if (targetUser) {
-			targetUser.popup(`|html|You were appointed Room Founder by ${SG.nameColor(user.name, true)} in ${room.title}.`);
+			targetUser.popup(`|html|You were appointed Room Founder by ${Exiled.nameColor(user.name, true)} in ${room.title}.`);
 			room.onUpdateIdentity(targetUser);
 		}
 		Rooms.global.writeChatRoomData();
@@ -516,7 +456,7 @@ exports.commands = {
 		room.auth[userid] = '#';
 		this.addModCommand(`${name} was appointed Room Owner by ${user.name}.`);
 		if (targetUser) {
-			targetUser.popup(`|html|You were appointed Room Owner by ${SG.nameColor(user.name, true)} in ${room.title}.`);
+			targetUser.popup(`|html|You were appointed Room Owner by ${Exiled.nameColor(user.name, true)} in ${room.title}.`);
 			room.onUpdateIdentity(targetUser);
 		}
 		Rooms.global.writeChatRoomData();
@@ -589,26 +529,6 @@ exports.commands = {
 		}
 	},
 
-	seticon: function (target, room, user) {
-		if (!this.can('lock')) return this.errorReply("Access denied.");
-
-		let args = target.split(',');
-		if (args.length < 3) return this.parse('/help seticon');
-		let username = toId(args.shift());
-		let image = 'background: rgba(244, 244, 244, 0.8) url("' + args.shift().trim() + '") right no-repeat;';
-		selectors = '\n\n' + '  #' + toId(args.shift()) + '-userlist-user-' + username;
-		args.forEach(function (room) {
-			selectors += ', #' + toId(room) + '-userlist-user-' + username;
-		});
-		selectors += ' { \n' + '    ' + image + '\n  }';
-
-		logMoney(user.name + " has set an icon to " + username + ".");
-		this.privateModCommand("(" + user.name + " has set an icon to  " + username + ")");
-		Rooms('staff').add('|raw|' + user.name + " has set an icon to " + username + ".").update();
-		writeIconCSS();
-	},
-	seticonhelp: ["/seticon [username], [image], [room 1], [room 2], etc. - Sets an icon to a user in chosen rooms."],
-
 	anime: function (target, room, user) {
 		if (!this.runBroadcast()) return;
 		if (!target) return this.errorReply("No target.");
@@ -679,9 +599,9 @@ exports.commands = {
 						room.update();
 					});
 			})
-		.catch(error => {
-			return this.errorReply("Anime not found.");
-		});
+			.catch(error => {
+				return this.errorReply("Anime not found.");
+			});
 	},
 
 	hc: function (room, user, cmd) {
@@ -699,4 +619,472 @@ exports.commands = {
 	hv: function (room, user, cmd) {
 		return this.parse('/hotpatch validator');
 	},
+	complain: 'requesthelp',
+	report: 'requesthelp',
+	requesthelp: function (target, room, user) {
+		if (user.can('lock')) return this.parse('/reports ' + (target || ''));
+		if (!this.canTalk()) return this.errorReply("You can't use this command while unable to speak.");
+		if (!target) return this.sendReply("/requesthelp [message] - Requests help from Exiled global authorities. Please be specific in your situation.");
+		if (target.length < 1) return this.sendReply("/requesthelp [message] - Requests help from Exiled global authorities. Please be specific in your situation.");
+
+		let reportId = (Object.keys(Reports).length + 1);
+		let d = new Date();
+		let MonthNames = ["January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December",
+		];
+		console.log(reportId);
+		while (Reports[reportId]) reportId--;
+		Reports[reportId] = {};
+		Reports[reportId].reporter = user.name;
+		Reports[reportId].message = target.trim();
+		Reports[reportId].id = reportId;
+		Reports[reportId].status = 'Pending';
+		Reports[reportId].reportTime = MonthNames[d.getUTCMonth()] + ' ' + d.getUTCDate() + "th, " + d.getUTCFullYear() + ", " + (d.getUTCHours() < 10 ? "0" + d.getUTCHours() : d.getUTCHours()) + ":" + (d.getUTCMinutes() < 10 ? "0" + d.getUTCMinutes() : d.getUTCMinutes()) + " UTC";
+		saveReports();
+		Rooms('staff').add('A new report has been submitted by ' + user.name + '. ID: ' + reportId + ' Message: ' + target.trim());
+		Rooms('staff').update();
+		return this.sendReply("Your report has been sent to Exiled global authorities..");
+	},
+
+	reports: function (target, room, user, connection, cmd) {
+		if (!user.can('lock')) return this.errorReply('/reports - Access denied.');
+		if (!target) target = '';
+		target = target.trim();
+
+		let id;
+		let cmdParts = target.split(' ');
+		cmd = cmdParts.shift().trim().toLowerCase();
+		let params = cmdParts.join(' ').split(',').map(function (param) {
+			return param.trim();
+		});
+		switch (cmd) {
+		case '':
+		case 'view':
+			if (!this.runBroadcast()) return;
+			let output = '|raw|<table border="1" cellspacing ="0" cellpadding="3"><tr><th>ID</th><th>Reporter</th><th>Message</th><th>Report Time</th><th>Status</th></tr>';
+			for (let u in Object.keys(Reports)) {
+				let currentReport = Reports[Object.keys(Reports)[u]];
+				let date = currentReport.reportTime;
+				output += '<tr><td>' + currentReport.id + '</td><td>' + Chat.escapeHTML(currentReport.reporter) + '</td><td>' +
+					Chat.escapeHTML(currentReport.message) + '</td><td>' + date + ' </td><td>' + (currentReport.status === 'Pending' ? '<font color=#ff9900>Pending</font>' : (~currentReport.status.indexOf('Accepted by') ? '<font color=green>' + Chat.escapeHTML(currentReport.status) + '</font>' : Chat.escapeHTML(currentReport.status))) + '</td></tr>';
+			}
+			this.sendReply(output);
+			break;
+		case 'accept':
+			if (params.length < 1) return this.errorReply("Usage: /reports accept [id]");
+			id = params.shift();
+			if (!Reports[id]) return this.errorReply("There's no report with that id.");
+			if (Reports[id].status !== 'Pending') return this.errorReply("That report isn't pending staff.");
+			Reports[id].status = "Accepted by " + user.name;
+			saveReports();
+			if (Users(Reports[id].reporter) && Users(Reports[id].reporter).connected) {
+				Users(Reports[id].reporter).popup("Your report has been accepted by " + user.name);
+			}
+			this.sendReply("You've accepted the report by " + Reports[id].reporter);
+			Rooms('staff').add(user.name + " accepted the report by " + Reports[id].reporter + ". (ID: " + id + ")");
+			Rooms('staff').update();
+			break;
+		case 'decline':
+		case 'deny':
+			if (params.length < 1) return this.errorReply("Usage: /reports deny [id]");
+			id = params.shift();
+			if (!Reports[id]) return this.errorReply("There's no report with that id.");
+			if (Reports[id].status !== 'Pending') return this.errorReply("That report isn't pending staff.");
+			if (Users(Reports[id].reporter) && Users(Reports[id].reporter).connected) {
+				Users(Reports[id].reporter).popup("|modal|" + "Your report has been denied by " + user.name);
+			}
+			this.sendReply("You've denied the report by " + Reports[id].reporter);
+			Rooms('staff').add(user.name + " denied the report by " + Reports[id].reporter + ". (ID: " + id + ")");
+			Rooms('staff').update();
+			delete Reports[id];
+			saveReports();
+			break;
+		case 'del':
+		case 'delete':
+			if (params.length < 1) return this.errorReply("Usage: /reports delete [id]");
+			id = params.shift();
+			if (!Reports[id]) return this.errorReply("There's no report with that id.");
+			Rooms('staff').add(user.name + " deleted the report by " + Reports[id].reporter + ". (ID: " + id + ")");
+			Rooms('staff').update();
+			delete Reports[id];
+			saveReports();
+			this.sendReply("That report has been deleted.");
+			break;
+		case 'help':
+			if (!this.runBroadcast()) return;
+			this.sendReplyBox("Report commands: <br />" +
+				"/report [message] - Adds a report to the system<br />" +
+				"/reports view - Views all current reports<br />" +
+				"/reports accept [id] - Accepts a report<br />" +
+				"/reports delete [id] - Deletes a report<br />" +
+				"/reports deny [id] - Denies a report"
+			);
+			break;
+		default:
+			this.parse('/reports help');
+		}
+	},
+	dev: {
+		give: function (target, room, user) {
+			if (!this.can('declare')) return false;
+			if (!target) return this.parse('/help', true);
+			let devUsername = toId(target);
+			if (devUsername.length > 18) return this.errorReply("Usernames cannot exceed 18 characters.");
+			if (isDev(devUsername)) return this.errorReply(devUsername + " is already a DEV user.");
+			Db('devs').set(devUsername, 1);
+			this.sendReply('|html|' + Exiled.nameColor(devUsername, true) + " has been given DEV status.");
+			if (Users.get(devUsername)) Users(devUsername).popup("|html|You have been given DEV status by " + Exiled.nameColor(user.name, true) + ".");
+		},
+		take: function (target, room, user) {
+			if (!this.can('declare')) return false;
+			if (!target) return this.parse('/help', true);
+			let devUsername = toId(target);
+			if (devUsername.length > 18) return this.errorReply("Usernames cannot exceed 18 characters.");
+			if (!isDev(devUsername)) return this.errorReply(devUsername + " isn't a DEV user.");
+			Db('devs').delete(devUsername);
+			this.sendReply("|html|" + Exiled.nameColor(devUsername, true) + " has been demoted from DEV status.");
+			if (Users.get(devUsername)) Users(devUsername).popup("|html|You have been demoted from DEV status by " + Exiled.nameColor(user.name, true) + ".");
+		},
+		users: 'list',
+		list: function (target, room, user) {
+			if (!Db('devs').keys().length) return this.errorReply('There seems to be no user with DEV status.');
+			let display = [];
+			Db('devs').keys().forEach(devUser => {
+				display.push(Exiled.nameColor(devUser, (Users(devUser) && Users(devUser).connected)));
+			});
+			this.popupReply('|html|<b><u><font size="3"><center>DEV Users:</center></font></u></b>' + display.join(','));
+		},
+		'': 'help',
+		help: function (target, room, user) {
+			this.sendReplyBox(
+				'<div style="padding: 3px 5px;"><center>' +
+				'<code>/dev</code> commands.<br />These commands are nestled under the namespace <code>dev</code>.</center>' +
+				'<hr width="100%">' +
+				'<code>give [username]</code>: Gives <code>username</code> DEV status. Requires: & ~' +
+				'<br />' +
+				'<code>take [username]</code>: Takes <code>username</code>\'s DEV status. Requires: & ~' +
+				'<br />' +
+				'<code>list</code>: Shows list of users with DEV Status' +
+				'</div>'
+			);
+		},
+	},
+	afk: 'away',
+	busy: 'away',
+	work: 'away',
+	working: 'away',
+	eating: 'away',
+	sleep: 'away',
+	sleeping: 'away',
+	gaming: 'away',
+	nerd: 'away',
+	nerding: 'away',
+	mimis: 'away',
+	away: function (target, room, user, connection, cmd) {
+		if (!user.isAway && user.name.length > 30 && !user.can('lock')) return this.sendReply("Your username is too long for any kind of use of this command.");
+		if (!this.canTalk()) return false;
+
+		target = target ? target.replace(/[^a-zA-Z0-9]/g, '') : 'AWAY';
+		if (cmd !== 'away') target = cmd;
+		let newName = user.name;
+		let status = parseStatus(target, true);
+		let statusLen = status.length;
+		if (statusLen > 14) return this.sendReply("Your away status should be short and to-the-point, not a dissertation on why you are away.");
+
+		if (user.isAway) {
+			let statusIdx = newName.search(/\s-\s[\u24B6-\u24E9\u2460-\u2468\u24EA]+$/);
+			if (statusIdx > -1) newName = newName.substr(0, statusIdx);
+			if (user.name.substr(-statusLen) === status) return this.sendReply("Your away status is already set to \"" + target + "\".");
+		}
+
+		newName += ' - ' + status;
+		if (newName.length > 30 && !user.can('lock')) return this.sendReply("\"" + target + "\" is too long to use as your away status.");
+
+		// forcerename any possible impersonators
+		let targetUser = Users.getExact(user.userid + target);
+		if (targetUser && targetUser !== user && targetUser.name === user.name + ' - ' + target) {
+			targetUser.resetName();
+			targetUser.send("|nametaken||Your name conflicts with " + user.name + (user.name.substr(-1) === "s" ? "'" : "'s") + " new away status.");
+		}
+
+		if (user.can('mute', null, room)) this.add("|raw|-- " + Exiled.nameColor(user.name, true) + " is now " + target.toLowerCase() + ".");
+		if (user.can('lock')) this.parse('/hide');
+		user.forceRename(newName, user.registered);
+		user.updateIdentity();
+		user.isAway = true;
+	},
+	awayhelp: ["/away [message] - Sets a user's away status."],
+
+	back: function (target, room, user) {
+		if (!user.isAway) return this.sendReply("You are not set as away.");
+		user.isAway = false;
+
+		let newName = user.name;
+		let statusIdx = newName.search(/\s\-\s[\u24B6-\u24E9\u2460-\u2468\u24EA]+$/); // eslint-disable-line no-useless-escape
+		if (statusIdx < 0) {
+			user.isAway = false;
+			if (user.can('mute', null, room)) this.add("|raw|-- " + Exiled.nameColor(user.userid, true) + " is no longer away.");
+			return false;
+		}
+
+		let status = parseStatus(newName.substr(statusIdx + 3), false);
+		newName = newName.substr(0, statusIdx);
+		user.forceRename(newName, user.registered);
+		user.updateIdentity();
+		user.isAway = false;
+		if (user.can('mute', null, room)) this.add("|raw|-- " + Exiled.nameColor(user.userid, true) + " is no longer " + status.toLowerCase() + ".");
+		if (user.can('lock')) this.parse('/show');
+	},
+	backhelp: ["/back - Sets a users away status back to normal."],
+
+	'!essb': true,
+	essb: function (target, room, user) {
+		if (!this.runBroadcast()) return false;
+		if (!target || target === 'help') return this.parse('/help essb');
+		if (target === 'credits') return this.parse('/essbcredits');
+		let targetData = getMonData(toId(target));
+		if (!targetData) return this.errorReply("The staffmon '" + toId(target) + "' could not be found.");
+		return this.sendReplyBox(targetData);
+	},
+
+	essbhelp: function (target, room, user) {
+		if (!this.runBroadcast()) return;
+		return this.sendReplyBox("/essb [staff member's name] - displays data for a staffmon's movepool, custom move, and custom ability.");
+	},
+
+	essbcredits: function (target, room, user) {
+		let popup = "|html|" + "<font size=5 color=#000080><u><b>ESSB Credits</b></u></font><br />" +
+			"<br />" +
+			"<u><b>Programmers:</u></b><br />" +
+			"- " + Exiled.nameColor('Insist', true) + " (Head Developer, Idea, Balancer, Concepts, Entries.)<br />" +
+			"- " + Exiled.nameColor('Gligars', true) + " (Assistant Developer)<br />" +
+			"- " + Exiled.nameColor('Back At My Day', true) + " (Entries, Developments.)<br />" +
+			"<u><b>Special Thanks:</b></u><br />" +
+			"- Our Staff Members for their cooperation in making this.<br />";
+		user.popup(popup);
+	},
+	'!dub': true,
+	dub: 'dubtrack',
+	music: 'dubtrack',
+	radio: 'dubtrack',
+	dubtrackfm: 'dubtrack',
+	dubtrack: function (target, room, user) {
+		if (!this.runBroadcast()) return;
+		let nowPlaying = "";
+		let options = {
+			host: 'api.dubtrack.fm',
+			port: 443,
+			path: '/room/exiled_147873230374424',
+			method: 'GET',
+		};
+		https.get(options, res => {
+			let data = '';
+			res.on('data', chunk => {
+				data += chunk;
+			}).on('end', () => {
+				if (data.charAt(0) === '{') {
+					data = JSON.parse(data);
+					if (data['data'] && data['data']['currentSong']) nowPlaying = "<br /><b>Now Playing:</b> " + Chat.escapeHTML(data['data']['currentSong'].name);
+				}
+				this.sendReplyBox('Join our dubtrack.fm room <a href="https://www.dubtrack.fm/join/exiled_147873230374424">here!</a>' + nowPlaying);
+				room.update();
+			});
+		});
+	},
+	'!youtube': true,
+	yt: 'youtube',
+	youtube: function (target, room, user) {
+		if (!this.runBroadcast()) return false;
+		if (!target) return false;
+		let params_spl = target.split(' '), g = ' ';
+		for (let i = 0; i < params_spl.length; i++) {
+			g += '+' + params_spl[i];
+		}
+		g = g.substr(1);
+
+		let reqOpts = {
+			hostname: 'www.googleapis.com',
+			method: 'GET',
+			path: '/youtube/v3/search?part=snippet&q=' + g + '&type=video&key=AIzaSyA4fgl5OuqrgLE1B7v8IWYr3rdpTGkTmns',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		};
+
+		let self = this;
+		let data = '';
+		let req = require('https').request(reqOpts, function (res) {
+			res.on('data', function (chunk) {
+				data += chunk;
+			});
+			res.on('end', function (chunk) {
+				let d = JSON.parse(data);
+				if (d.pageInfo.totalResults === 0) {
+					room.add('No videos found');
+					room.update();
+					return false;
+				}
+				let id = getLinkId(target);
+				const image = '<button style="background: none; border: none;"><img src="https://i.ytimg.com/vi/' + id + '/hqdefault.jpg?custom=true&w=168&h=94&stc=true&jpg444=true&jpgq=90&sp=68&sigh=tbq7TDTjFXD_0RtlFUMGz-k3JiQ" height="180" width="180"></button>';
+				self.sendReplyBox('<center>' + image + '<br><a href="https://www.youtube.com/watch?v=' + d.items[0].id.videoId + '"><b> ' + d.items[0].snippet.title + '</b></center>');
+				room.update();
+			});
+		});
+		req.end();
+	},
+	clearall: function (target, room, user) {
+		if (!this.can('declare')) return false;
+		if (room.battle) return this.sendReply("You cannot clearall in battle rooms.");
+
+		clearRoom(room);
+
+		this.privateModCommand(`(${user.name} used /clearall.)`);
+	},
+
+	'!roompromote': true,
+	roomdemote: 'roompromote',
+	roompromote: function (target, room, user, connection, cmd) {
+		if (!room) {
+			// this command isn't marked as room-only because it's usable in PMs through /invite
+			return this.errorReply("This command is only available in rooms");
+		}
+		if (!room.auth) {
+			this.sendReply("/roompromote - This room isn't designed for per-room moderation");
+			return this.sendReply("Before setting room staff, you need to set a room owner with /roomowner");
+		}
+		if (!this.canTalk()) return;
+		if (!target) return this.parse('/help roompromote');
+
+		target = this.splitTarget(target, true);
+		let targetUser = this.targetUser;
+		let userid = toId(this.targetUsername);
+		let name = targetUser ? targetUser.name : this.targetUsername;
+
+		if (!userid) return this.parse('/help roompromote');
+		if (!targetUser && !Users.isUsernameKnown(userid)) {
+			return this.errorReply(`User '${name}' is offline and unrecognized, and so can't be promoted.`);
+		}
+		if (targetUser && !targetUser.registered) {
+			return this.errorReply(`User '${name}' is unregistered, and so can't be promoted.`);
+		}
+
+		let currentGroup = room.getAuth({userid, group: (Users.usergroups[userid] || ' ').charAt(0)});
+		let nextGroup = target;
+		if (target === 'deauth') nextGroup = Config.groupsranking[0];
+		if (!nextGroup) {
+			return this.errorReply("Please specify a group such as /roomvoice or /roomdeauth");
+		}
+		if (!Config.groups[nextGroup]) {
+			return this.errorReply(`Group '${nextGroup}' does not exist.`);
+		}
+
+		if (Config.groups[nextGroup].globalonly || (Config.groups[nextGroup].battleonly && !room.battle)) {
+			return this.errorReply(`Group 'room${Config.groups[nextGroup].id}' does not exist as a room rank.`);
+		}
+
+		let groupName = Config.groups[nextGroup].name || "regular user";
+		if ((room.auth[userid] || Config.groupsranking[0]) === nextGroup) {
+			return this.errorReply(`User '${name}' is already a ${groupName} in this room.`);
+		}
+		if (!user.can('makeroom')) {
+			if (currentGroup !== ' ' && !user.can('room' + (Config.groups[currentGroup] ? Config.groups[currentGroup].id : 'voice'), null, room)) {
+				if (user.userid !== room.founder) return this.errorReply(`/${cmd} - Access denied for promoting/demoting from ${(Config.groups[currentGroup] ? Config.groups[currentGroup].name : "an undefined group")}.`);
+			}
+			if (nextGroup !== ' ' && !user.can('room' + Config.groups[nextGroup].id, null, room)) {
+				return this.errorReply(`/${cmd} - Access denied for promoting/demoting to ${Config.groups[nextGroup].name}.`);
+			}
+		}
+		let nextGroupIndex = Config.groupsranking.indexOf(nextGroup) || 1; // assume voice if not defined (although it should be by now)
+		if (targetUser && targetUser.locked && !room.isPrivate && !room.battle && !room.isPersonal && nextGroupIndex >= 2) {
+			return this.errorReply("Locked users can't be promoted.");
+		}
+
+		if (nextGroup === Config.groupsranking[0]) {
+			delete room.auth[userid];
+		} else {
+			room.auth[userid] = nextGroup;
+		}
+		if (room.founder === userid && nextGroup !== '#') room.founder = false; //Must be a demotion as
+
+		// Only show popup if: user is online and in the room, the room is public, and not a groupchat or a battle.
+		let needsPopup = targetUser && room.users[targetUser.userid] && !room.isPrivate && !room.isPersonal && !room.battle;
+
+		if (this.pmTarget && targetUser) {
+			const text = `${targetUser.name} was invited (and promoted to Room ${groupName}) by ${user.name}`;
+			room.add(`|c|${user.getIdentity(room)}|/log ${text}`).update();
+			room.modlog(text);
+		} else if (nextGroup in Config.groups && currentGroup in Config.groups && Config.groups[nextGroup].rank < Config.groups[currentGroup].rank) {
+			if (targetUser && room.users[targetUser.userid] && !Config.groups[nextGroup].modlog) {
+				// if the user can't see the demotion message (i.e. rank < %), it is shown in the chat
+				targetUser.send(">" + room.id + "\n(You were demoted to Room " + groupName + " by " + user.name + ".)");
+			}
+			this.privateModCommand(`(${name} was demoted to Room ${groupName} by ${user.name}.)`);
+			if (needsPopup) targetUser.popup(`|html|You were demoted to Room ${groupName} by ${Exiled.nameColor(user.name, true)} in ${room.title}.`);
+		} else if (nextGroup === '#') {
+			this.addModCommand(`${'' + name} was promoted to ${groupName} by ${user.name}.`);
+			if (needsPopup) targetUser.popup(`|html|You were promoted to ${groupName} by ${Exiled.nameColor(user.name, true)} in ${room.title}.`);
+		} else {
+			this.addModCommand(`${'' + name} was promoted to Room ${groupName} by ${user.name}.`);
+			if (needsPopup) targetUser.popup(`|html|You were promoted to Room ${groupName} by ${Exiled.nameColor(user.name, true)} in ${room.title}.`);
+		}
+
+		if (targetUser) targetUser.updateIdentity(room.id);
+		if (room.chatRoomData) Rooms.global.writeChatRoomData();
+	},
+	roompromotehelp: [
+		"/roompromote OR /roomdemote [username], [group symbol] - Promotes/demotes the user to the specified room rank. Requires: @ * # & ~",
+		"/room[group] [username] - Promotes/demotes the user to the specified room rank. Requires: @ * # & ~",
+		"/roomdeauth [username] - Removes all room rank from the user. Requires: @ * # & ~",
+	],
+
+	gclearall: 'globalclearall',
+	globalclearall: function (target, room, user) {
+		if (!this.can('gdeclare')) return false;
+
+		Rooms.rooms.forEach(room => clearRoom(room));
+		Users.users.forEach(user => user.popup('All rooms have been cleared.'));
+		this.privateModCommand(`(${user.name} used /globalclearall.)`);
+	},
+	'!regdate': true,
+	regdate: function (target, room, user, connection) {
+		if (!target) target = user.name;
+		target = toId(target);
+		if (target.length < 1 || target.length > 19) {
+			return this.sendReply("Usernames can not be less than one character or longer than 19 characters. (Current length: " + target.length + ".)");
+		}
+		if (!this.runBroadcast()) return;
+		Exiled.regdate(target, date => {
+			if (date) {
+				this.sendReplyBox(regdateReply(date));
+			}
+		});
+
+		function regdateReply(date) {
+			if (date === 0) {
+				return Exiled.nameColor(target, true) + " <b><font color='red'>is not registered.</font></b>";
+			} else {
+				let d = new Date(date);
+				let MonthNames = ["January", "February", "March", "April", "May", "June",
+					"July", "August", "September", "October", "November", "December",
+				];
+				let DayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+				return Exiled.nameColor(target, true) + " was registered on <b>" + DayNames[d.getUTCDay()] + ", " + MonthNames[d.getUTCMonth()] + ' ' + d.getUTCDate() + ", " + d.getUTCFullYear() + "</b> at <b>" + d.getUTCHours() + ":" + d.getUTCMinutes() + ":" + d.getUTCSeconds() + " UTC.</b>";
+			}
+			//room.update();
+		}
+	},
+	regdatehelp: ["/regdate - Gets the regdate (register date) of a username."],
+
+	'!seen': true,
+	seen: function (target, room, user) {
+		if (!this.runBroadcast()) return;
+		if (!target) return this.parse('/help seen');
+		let targetUser = Users.get(target);
+		if (targetUser && targetUser.connected) return this.sendReplyBox(Exiled.nameColor(targetUser.name, true) + " is <b><font color='limegreen'>Currently Online</b></font>.");
+		target = Chat.escapeHTML(target);
+		let seen = Db('seen').get(toId(target));
+		if (!seen) return this.sendReplyBox(Exiled.nameColor(target, true) + " has <b><font color='red'>never been online</font></b> on this server.");
+		this.sendReplyBox(Exiled.nameColor(target, true) + " was last seen <b>" + Chat.toDurationString(Date.now() - seen, {precision: true}) + "</b> ago.");
+	},
+	seenhelp: ["/seen - Shows when the user last connected on the server."],
 };

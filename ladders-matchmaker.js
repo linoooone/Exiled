@@ -10,59 +10,28 @@
 
 'use strict';
 
-const fs = require('fs');
-
 const PERIODIC_MATCH_INTERVAL = 60 * 1000;
 
-function Search(userid, team, rating = 1000) {
-	this.userid = userid;
-	this.team = team;
-	this.rating = rating;
-	this.time = new Date().getTime();
+class Search {
+	constructor(userid, team, rating = 1000) {
+		this.userid = userid;
+		this.team = team;
+		this.rating = rating;
+		this.time = Date.now();
+	}
+
+	setRating(rating) {
+		this.rating = rating;
+	}
+
+	setStart() {
+		this.time = Date.now();
+	}
 }
 
 class Matchmaker {
 	constructor() {
 		this.searches = new Map();
-		if (('Config' in global) && Config.logladderip) {
-			this.ladderIpLog = fs.createWriteStream('logs/ladderip/ladderip.txt', {encoding: 'utf8', flags: 'a'});
-		} else {
-			// Prevent there from being two possible hidden classes an instance
-			// of Matchmaker can have.
-			this.ladderIpLog = new (require('stream')).Writable();
-		}
-
-		let lastBattle;
-		try {
-			lastBattle = fs.readFileSync('logs/lastbattle.txt', 'utf8');
-		} catch (e) {}
-		this.lastBattle = (!lastBattle || isNaN(lastBattle)) ? 0 : +lastBattle;
-
-		this.writeNumRooms = (() => {
-			let writing = false;
-			let lastBattle = -1; // last lastBattle to be written to file
-			return () => {
-				if (writing) return;
-
-				// batch writing lastbattle.txt for every 10 battles
-				if (lastBattle >= this.lastBattle) return;
-				lastBattle = this.lastBattle + 10;
-
-				let filename = 'logs/lastbattle.txt';
-				writing = true;
-				fs.writeFile(`${filename}.0`, '' + lastBattle, () => {
-					fs.rename(`${filename}.0`, filename, () => {
-						writing = false;
-						lastBattle = null;
-						filename = null;
-						if (lastBattle < this.lastBattle) {
-							setImmediate(() => this.writeNumRooms());
-						}
-					});
-				});
-			};
-		})();
-
 		this.periodicMatchInterval = setInterval(
 			() => this.periodicMatch(),
 			PERIODIC_MATCH_INTERVAL
@@ -91,22 +60,29 @@ class Matchmaker {
 
 	searchBattle(user, formatid) {
 		if (!user.connected) return;
-		formatid = Tools.getFormat(formatid).id;
-		return user.prepBattle(formatid, 'search', null)
-			.then(result => this.finishSearchBattle(user, formatid, result));
+		formatid = Dex.getFormat(formatid).id;
+
+		return Promise.all([
+			Promise.resolve(user.userid),
+			user.prepBattle(formatid, 'search', null),
+			Ladders(formatid).getRating(user.userid),
+		]).then(([userId, validTeam, rating]) => {
+			if (userId !== user.userid) return;
+			return this.finishSearchBattle(user, formatid, validTeam, rating);
+		}, err => {
+			// Rejects iff ladders are disabled, or if we
+			// retrieved the rating but the user had changed their name.
+
+			if (Ladders.disabled) return user.popup(`The ladder is currently disabled due to high server load.`);
+			// User feedback for renames handled elsewhere.
+		});
 	}
 
-	finishSearchBattle(user, formatid, result) {
-		if (!result) return;
+	finishSearchBattle(user, formatid, validTeam, rating) {
+		if (validTeam === false) return;
 
-		// Get the user's rating before actually starting to search.
-		Ladders(formatid).getRating(user.userid).then(rating => {
-			let search = new Search(user.userid, user.team, rating);
-			this.addSearch(search, user, formatid);
-		}, error => {
-			// Rejects if we retrieved the rating but the user had changed their name;
-			// the search simply doesn't happen in this case.
-		});
+		const search = new Search(user.userid, validTeam, rating);
+		this.addSearch(search, user, formatid);
 	}
 
 	matchmakingOK(search1, search2, user1, user2, formatid) {
@@ -126,8 +102,8 @@ class Matchmaker {
 
 		// search must be within range
 		let searchRange = 100, elapsed = Date.now() - Math.min(search1.time, search2.time);
-		if (formatid === 'ou' || formatid === 'oucurrent' ||
-				formatid === 'oususpecttest' || formatid === 'randombattle') {
+		if (formatid === 'gen7ou' || formatid === 'gen7oucurrent' ||
+				formatid === 'gen7oususpecttest' || formatid === 'gen7randombattle') {
 			searchRange = 50;
 		}
 
@@ -160,7 +136,7 @@ class Matchmaker {
 				delete user.searching[formatid];
 				delete searchUser.searching[formatid];
 				formatSearches.delete(search);
-				this.startBattle(searchUser, user, formatid, search.team, newSearch.team, {rated: minRating});
+				this.startBattle(searchUser, user, formatid, search.team, newSearch.team, {rated: !Ladders.disabled && minRating});
 				return;
 			}
 		}
@@ -184,68 +160,54 @@ class Matchmaker {
 					delete searchUser.searching[formatid];
 					formatSearches.delete(search);
 					formatSearches.delete(longestSearch);
-					this.startBattle(searchUser, longestSearcher, formatid, search.team, longestSearch.team, {rated: minRating});
+					this.startBattle(searchUser, longestSearcher, formatid, search.team, longestSearch.team, {rated: !Ladders.disabled && minRating});
 					return;
 				}
 			}
 		});
 	}
 
-	startBattle(p1, p2, format, p1team, p2team, options) {
-		p1 = Users.get(p1);
-		p2 = Users.get(p2);
+	verifyPlayers(player1, player2, format) {
+		let p1 = (typeof player1 === 'string') ? Users(player1) : player1;
+		let p2 = (typeof player2 === 'string') ? Users(player2) : player2;
 		if (!p1 || !p2) {
-			// most likely, a user was banned during the battle start procedure
-			this.cancelSearch(p1);
-			this.cancelSearch(p2);
-			return;
+			this.cancelSearch(p1, format);
+			this.cancelSearch(p2, format);
+			return false;
 		}
+
 		if (p1 === p2) {
-			this.cancelSearch(p1);
-			this.cancelSearch(p2);
+			this.cancelSearch(p1, format);
+			this.cancelSearch(p2, format);
 			p1.popup("You can't battle your own account. Please use something like Private Browsing to battle yourself.");
-			return;
+			return false;
 		}
 
 		if (Rooms.global.lockdown === true) {
-			this.cancelSearch(p1);
-			this.cancelSearch(p2);
+			this.cancelSearch(p1, format);
+			this.cancelSearch(p2, format);
 			p1.popup("The server is restarting. Battles will be available again in a few minutes.");
 			p2.popup("The server is restarting. Battles will be available again in a few minutes.");
-			return;
+			return false;
 		}
 
-		//console.log('BATTLE START BETWEEN: ' + p1.userid + ' ' + p2.userid);
-		let i = this.lastBattle + 1;
-		let roomPrefix = `battle-${format.toLowerCase().replace(/[^a-z0-9]+/g, '')}-`;
-		while (Rooms.rooms.has(`${roomPrefix}${i}`)) {
-			i++;
-		}
-		this.lastBattle = i;
-		this.writeNumRooms();
+		return true;
+	}
 
-		let newRoom = Rooms.createBattle(`${roomPrefix}${i}`, format, p1, p2, options);
-		p1.joinRoom(newRoom);
-		p2.joinRoom(newRoom);
-		newRoom.battle.addPlayer(p1, p1team);
-		newRoom.battle.addPlayer(p2, p2team);
-		this.cancelSearch(p1);
-		this.cancelSearch(p2);
-		if (Config.reportbattles) {
-			let reportRoom = Rooms(Config.reportbattles === true ? 'lobby' : Config.reportbattles);
-			if (reportRoom) {
-				reportRoom
-					.add(`|b|${newRoom.id}|${p1.getIdentity()}|${p2.getIdentity()}`)
-					.update();
-			}
-		}
-		if (Config.logladderip && options.rated) {
-			this.ladderIpLog.write(
-				`${p1.userid}: ${p1.latestIp}\n` +
-				`${p2.userid}: ${p2.latestIp}\n`
-			);
-		}
-		return newRoom;
+	startBattle(p1, p2, format, p1team, p2team, options) {
+		if (!this.verifyPlayers(p1, p2, format)) return;
+
+		let roomid = Rooms.global.prepBattleRoom(format);
+		let room = Rooms.createBattle(roomid, format, p1, p2, options);
+		p1.joinRoom(room);
+		p2.joinRoom(room);
+		room.battle.addPlayer(p1, p1team);
+		room.battle.addPlayer(p2, p2team);
+		this.cancelSearch(p1, format);
+		this.cancelSearch(p2, format);
+		Rooms.global.onCreateBattleRoom(p1, p2, room, options);
+
+		return room;
 	}
 }
 
